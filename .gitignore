@@ -1,0 +1,102 @@
+# ==============================
+# Visual Studio cache / user
+# ==============================
+
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# ==============================
+# Visual Studio database
+# ==============================
+
+*.VC.db
+*.VC.opendb
+*.db
+
+# ==============================
+# Build folders
+# ==============================
+
+Debug/
+Release/
+x64/
+x86/
+build/
+out/
+
+# ==============================
+# Build artifacts
+# ==============================
+
+*.obj
+*.pch
+*.pdb
+*.ilk
+*.idb
+*.exp
+*.lib
+*.exe
+*.dll
+*.log
+
+# ==============================
+# Incremental link (VS2017+)
+# ==============================
+
+*.iobj
+*.ipdb
+
+# ==============================
+# IntelliSense / cache
+# ==============================
+
+ipch/
+*.ipch
+
+# ==============================
+# Visual Studio generated
+# ==============================
+
+*.aps
+*.ncb
+*.opensdf
+*.sdf
+
+# ==============================
+# CMake (if used)
+# ==============================
+
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+
+# ==============================
+# Package managers (vcpkg / NuGet)
+# ==============================
+
+packages/
+vcpkg_installed/
+
+# ==============================
+# Editor
+# ==============================
+
+.vscode/
+
+# ==============================
+# OS generated files
+# ==============================
+
+Thumbs.db
+.DS_Store
+
+# ==============================
+# Temporary files
+# ==============================
+
+*.tmp
+*.temp
+*.cache
