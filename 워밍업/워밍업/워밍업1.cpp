@@ -168,7 +168,17 @@ int main()
 			{
 				for (int j = 0; j < 4; ++j)
 				{
-					cout << num1[i][j]+1 << " ";
+					if (num1[i][j] == 9)
+					{
+						cout << 0 << " ";
+						
+
+					}
+					else
+					{
+						cout << num1[i][j] + 1 << " ";
+						
+					}
 					
 					
 				}
@@ -181,8 +191,15 @@ int main()
 		{
 			for (int j = 0; j < 4; ++j)
 			{
-				cout << num2[i][j]+1 << " ";
-
+				if (num1[i][j] == 9)
+				{
+					cout << 0 << " ";
+					
+				}
+				else
+				{
+					cout << num2[i][j] + 1 << " ";
+				}
 			}
 			cout << endl;
 		}
