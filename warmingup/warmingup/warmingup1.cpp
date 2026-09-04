@@ -17,7 +17,7 @@ int main()
 	{
 		for (int j = 0; j < 4; ++j)
 		{
-		num1[i][j] = rand() % 10;
+			num1[i][j] = rand() % 10;
 		}
 	}
 	for (int i = 0; i < 4; ++i)

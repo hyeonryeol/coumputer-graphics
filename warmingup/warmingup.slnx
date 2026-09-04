@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="워밍업/워밍업.vcxproj" Id="96a92d7e-88a8-4667-b6e9-6cf9edcc258a" />
+  <Project Path="warmingup/warmingup.vcxproj" Id="96a92d7e-88a8-4667-b6e9-6cf9edcc258a" />
 </Solution>
