@@ -27,5 +27,8 @@
     <ClCompile Include="warmingup4.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="warmingup5.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -8,7 +8,8 @@ int num1[10][10] = {};
 int num2[10][10] = {};
 int result[10][10] = {};
 int result1[10][10] = {};
-bool pluspress = false;
+int pluscount = 0;
+
 bool epress = false;
 bool fpress = false;
 
@@ -66,14 +67,14 @@ int main()
 	{
 		for (int j = 0; j < 4; ++j)
 		{
-			num1[i][j] = rand() % 9 + 1;
+			num1[i+pluscount][j+pluscount] = rand() % 9 + 1;
 		}
 	}
 	for (int i = 0; i < 4; ++i)
 	{
 		for (int j = 0; j < 4; ++j)
 		{
-			cout << num1[i][j] << " ";
+			cout << num1[i+pluscount][j+pluscount] << " ";
 
 		}
 		cout << endl;
@@ -214,85 +215,48 @@ int main()
 		}
 		if (command == "+")
 		{
-			if (pluspress == false)
+
+
+			for (int i = 0; i < 4; ++i)
 			{
-
-				for (int i = 0; i < 4; ++i)
+				for (int j = 0; j < 4; ++j)
 				{
-					for (int j = 0; j < 4; ++j)
+					if (num1[i][j] == 9)
 					{
-						if (num1[i][j] == 9)
-						{
-							cout << 0 << " ";
-
-						}
-						else
-						{
-							cout << num1[i][j] + 1 << " ";
-
-						}
-
+						num1[i][j] = 0;
 					}
-					cout << endl;
+					else
+					{
+						num1[i][j] += 1;
+					}
+					cout << num1[i][j] << " ";
 				}
 				cout << endl;
-				cout << endl;
-				cout << endl;
-				for (int i = 0; i < 4; ++i)
-				{
-					for (int j = 0; j < 4; ++j)
-					{
-						if (num2[i][j] == 9)
-						{
-							cout << 0 << " ";
-
-						}
-						else
-						{
-							cout << num2[i][j] + 1 << " ";
-						}
-					}
-					cout << endl;
-				}
-
 			}
-			else
+			cout << endl;
+			cout << endl;
+			cout << endl;
+			for (int i = 0; i < 4; ++i)
 			{
-				for (int i = 0; i < 4; ++i)
+				for (int j = 0; j < 4; ++j)
 				{
-					for (int j = 0; j < 4; ++j)
+					if (num2[i][j] == 9)
 					{
-						cout << num1[i][j] << " ";
-
+						num2[i][j] = 0;
 					}
-					cout << endl;
+					else
+					{
+						num2[i][j] += 1;
+					}
+					cout << num2[i][j] << " ";
 				}
 				cout << endl;
-				cout << endl;
-				cout << endl;
-				for (int i = 0; i < 4; ++i)
-				{
-					for (int j = 0; j < 4; ++j)
-					{
-						cout << num2[i][j] << " ";
+			}
 
-					}
-					cout << endl;
-				}
-			}
-			if (pluspress == false)
-			{
-				pluspress = true;
-			}
-			else if (pluspress == true)
-			{
-				pluspress = false;
-			}
 		}
 		if (command == "-")
 		{
-			if (pluspress == false)
-			{
+
 
 				for (int i = 0; i < 4; ++i)
 				{
@@ -300,15 +264,13 @@ int main()
 					{
 						if (num1[i][j] == 0)
 						{
-							cout << 9 << " ";
-
+							num1[i][j] = 9;
 						}
 						else
 						{
-							cout << num1[i][j] - 1 << " ";
-
+							num1[i][j] -= 1;
 						}
-
+						cout << num1[i][j] << " ";
 					}
 					cout << endl;
 				}
@@ -321,50 +283,18 @@ int main()
 					{
 						if (num2[i][j] == 0)
 						{
-							cout << 9 << " ";
-
+							num2[i][j] = 9;
 						}
 						else
 						{
-							cout << num2[i][j] - 1 << " ";
+							num2[i][j] -= 1;
 						}
-					}
-					cout << endl;
-				}
-
-			}
-			else
-			{
-				for (int i = 0; i < 4; ++i)
-				{
-					for (int j = 0; j < 4; ++j)
-					{
-						cout << num1[i][j] << " ";
-
-					}
-					cout << endl;
-				}
-				cout << endl;
-				cout << endl;
-				cout << endl;
-				for (int i = 0; i < 4; ++i)
-				{
-					for (int j = 0; j < 4; ++j)
-					{
 						cout << num2[i][j] << " ";
-
 					}
 					cout << endl;
 				}
-			}
-			if (pluspress == false)
-			{
-				pluspress = true;
-			}
-			else if (pluspress == true)
-			{
-				pluspress = false;
-			}
+
+
 		}
 		if (command == "r")
 		{
@@ -568,25 +498,25 @@ int main()
 			if (fpress == false)
 			{
 
-				
+
 				int maxv[4];
 
-				for (int j = 0; j < 4; ++j)         
+				for (int j = 0; j < 4; ++j)
 				{
-					maxv[j] = num1[0][j];           
+					maxv[j] = num1[0][j];
 
-					for (int i = 0; i < 4; ++i)      
+					for (int i = 0; i < 4; ++i)
 					{
 						if (maxv[j] < num1[i][j]) maxv[j] = num1[i][j];
 					}
 				}
 
-				
+
 				for (int i = 0; i < 4; ++i)
 				{
 					for (int j = 0; j < 4; ++j)
 					{
-						cout << num1[i][j] + maxv[j] << " ";   
+						cout << num1[i][j] + maxv[j] << " ";
 					}
 					cout << endl;
 				}

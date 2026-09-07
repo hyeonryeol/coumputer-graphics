@@ -1,8 +1,8 @@
-#include <string>
+﻿#include <string>
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <cctype>     
+#include <cctype>
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
@@ -20,6 +20,7 @@ bool ipress = false;
 
 int jpress = 1;
 
+string giword = "";   
 string tolow(string s)
 {
 	for (int k = 0; k < (int)s.length(); ++k)
@@ -29,8 +30,62 @@ string tolow(string s)
 	return s;
 }
 
+
+void rebuildWords(string lines[], int count, string words[][30], int wordcount[])
+{
+	for (int i = 0; i < count; ++i)
+	{
+		istringstream iss(lines[i]);
+		string word;
+		int n = 0;
+		while (iss >> word)
+		{
+			words[i][n] = word;
+			++n;
+		}
+		wordcount[i] = n;
+	}
+}
+
+
+void printLine(HANDLE hcon, const string& line, bool hc, const string& iword, bool hi)
+{
+	int n = (int)line.length();
+	int j = 0;
+	while (j < n)
+	{
+		if (isspace((unsigned char)line[j]))  
+		{
+			cout << line[j];
+			++j;
+			continue;
+		}
+		int k = j;
+		while (k < n && !isspace((unsigned char)line[k])) ++k;   
+		string w = line.substr(j, k - j);
+
+		bool red = false;
+		if (hc && !w.empty() && isupper((unsigned char)w[0])) red = true;
+		if (hi && tolow(w) == tolow(iword)) red = true;
+
+		if (red)
+		{
+			SetConsoleTextAttribute(hcon, 12);
+			cout << w;
+			SetConsoleTextAttribute(hcon, 7);
+		}
+		else
+		{
+			cout << w;
+		}
+		j = k;
+	}
+}
+
 int main()
 {
+	HANDLE hcon = GetStdHandle(STD_OUTPUT_HANDLE);
+
 	string filename;
 	cout << "file name: ";
 	cin >> filename;
@@ -55,22 +110,15 @@ int main()
 
 	fin.close();
 
-	for (int i = 0; i < count; ++i)
-	{
-		istringstream iss(lines[i]);
-		string word;
-		int n = 0;
+	rebuildWords(lines, count, words, wordcount);
 
-		while (iss >> word)
-		{
-			words[i][n] = word;
-			++n;
-		}
-		wordcount[i] = n;
-	}
+
+	string bakA[20], bakD[20], bakE[20], bakF[20], bakG[20], bakH[20];
+
 	for (int i = 0; i < count; ++i)
 	{
-		cout << lines[i] << endl;
+		printLine(hcon, lines[i], cpress, giword, ipress);
+		cout << endl;
 	}
 
 	while (1)
@@ -83,134 +131,120 @@ int main()
 		{
 			if (apress == false)
 			{
+				for (int i = 0; i < count; ++i) bakA[i] = lines[i];
 				for (int i = 0; i < count; ++i)
 				{
 					string s = lines[i];
-					for (int j = 0; j < s.length(); ++j)
+					for (int j = 0; j < (int)s.length(); ++j)
 					{
 						if (islower(s[j])) s[j] = toupper(s[j]);
 						else if (isupper(s[j])) s[j] = tolower(s[j]);
 					}
-					cout << s << endl;
+					lines[i] = s;
 				}
+				rebuildWords(lines, count, words, wordcount);
 				apress = true;
 			}
 			else
 			{
-				for (int i = 0; i < count; ++i)
-				{
-					cout << lines[i] << endl;
-				}
+				for (int i = 0; i < count; ++i) lines[i] = bakA[i];
+				rebuildWords(lines, count, words, wordcount);
 				apress = false;
 			}
+			for (int i = 0; i < count; ++i) { printLine(hcon, lines[i], cpress, giword, ipress); cout << endl; }
 		}
 		if (command == "d")
 		{
 			if (dpress == false)
 			{
+				for (int i = 0; i < count; ++i) bakD[i] = lines[i];
 				for (int i = 0; i < count; ++i)
 				{
 					string d = lines[i];
-					for (int j = d.length() - 1; j >= 0; --j)
+					string r = "";
+					for (int j = (int)d.length() - 1; j >= 0; --j)
 					{
-						cout << d[j];
+						r += d[j];
 					}
-					cout << endl;
+					lines[i] = r;
 				}
-
+				rebuildWords(lines, count, words, wordcount);
 				dpress = true;
 			}
 			else
 			{
-				for (int i = 0; i < count; ++i)
-				{
-					cout << lines[i] << endl;
-				}
-
+				for (int i = 0; i < count; ++i) lines[i] = bakD[i];
+				rebuildWords(lines, count, words, wordcount);
 				dpress = false;
 			}
+			for (int i = 0; i < count; ++i) { printLine(hcon, lines[i], cpress, giword, ipress); cout << endl; }
 		}
 		if (command == "e")
 		{
 			if (epress == false)
 			{
+				for (int i = 0; i < count; ++i) bakE[i] = lines[i];
 				for (int i = 0; i < count; ++i)
 				{
+					string s = "";
 					for (int j = 0; j < wordcount[i]; ++j)
 					{
-						if (j > 0) cout << "*";
-						cout << words[i][j];
+						if (j > 0) s += "*";
+						s += words[i][j];
 					}
-					cout << endl;
+					lines[i] = s;
 				}
+				rebuildWords(lines, count, words, wordcount);
 				epress = true;
 			}
 			else
 			{
-				for (int i = 0; i < count; ++i)
-				{
-					cout << lines[i] << endl;
-				}
+				for (int i = 0; i < count; ++i) lines[i] = bakE[i];
+				rebuildWords(lines, count, words, wordcount);
 				epress = false;
 			}
+			for (int i = 0; i < count; ++i) { printLine(hcon, lines[i], cpress, giword, ipress); cout << endl; }
 		}
 		if (command == "b")
 		{
 			for (int i = 0; i < count; ++i)
 			{
-				cout << lines[i] << " " << wordcount[i] << endl;
+				printLine(hcon, lines[i], cpress, giword, ipress);
+				cout << " " << wordcount[i] << endl;
 			}
 		}
 		if (command == "c")
 		{
-			if (cpress == false)
+			if (cpress == false) cpress = true;
+			else cpress = false;
+
+			int total = 0;
+			for (int i = 0; i < count; ++i)
 			{
-				HANDLE hcon = GetStdHandle(STD_OUTPUT_HANDLE);
-				int total = 0;
-
-				for (int i = 0; i < count; ++i)
+				for (int j = 0; j < wordcount[i]; ++j)
 				{
-					for (int j = 0; j < wordcount[i]; ++j)
-					{
-						if (j > 0) cout << " ";        
-
-						if (isupper(words[i][j][0]))
-						{
-							SetConsoleTextAttribute(hcon, 12);
-							cout << words[i][j];
-							SetConsoleTextAttribute(hcon, 7);
-							++total;                   
-						}
-						else
-						{
-							cout << words[i][j];
-						}
-					}
-					cout << endl;
+					if (!words[i][j].empty() && isupper((unsigned char)words[i][j][0])) ++total;
 				}
-
-				cout << "대문자로 시작하는 단어: " << total << endl;
-				cpress = true;
 			}
-			else
+
+			for (int i = 0; i < count; ++i)
 			{
-				for (int i = 0; i < count; ++i)
-				{
-					cout << lines[i] << endl;
-				}
-				cpress = false;
+				printLine(hcon, lines[i], cpress, giword, ipress);
+				cout << endl;
 			}
+			if (cpress) cout << "대문자로 시작하는 단어: " << total << endl;
 		}
 		if (command == "j")
 		{
 			for (int i = 0 + jpress; i < count; ++i)
 			{
-				cout << lines[i] << endl;
+				printLine(hcon, lines[i], cpress, giword, ipress);
+				cout << endl;
 			}
 			for (int i = 0; i < jpress; ++i)
 			{
-				cout << lines[i] << endl;
-
+				printLine(hcon, lines[i], cpress, giword, ipress);
+				cout << endl;
 			}
 			jpress = (jpress + 1) % count;
 		}
@@ -218,43 +252,44 @@ int main()
 		{
 			if (fpress == false)
 			{
-				if (epress == false)
+				
+				char sepc = epress ? '*' : ' ';
+				for (int i = 0; i < count; ++i) bakF[i] = lines[i];
+				for (int i = 0; i < count; ++i)
 				{
-
-					for (int i = 0; i < count; ++i)
+					string tok[30];
+					int n = 0;
+					string cur = "";
+					string g = lines[i];
+					for (int j = 0; j <= (int)g.length(); ++j)
 					{
-						for (int j = wordcount[i] - 1; j >= 0; --j)
+						if (j == (int)g.length() || g[j] == ' ' || g[j] == sepc)
 						{
-							cout << words[i][j] << " ";
-
+							if (!cur.empty()) { tok[n++] = cur; cur = ""; }
 						}
-						cout << endl;
+						else
+						{
+							cur += g[j];
+						}
 					}
-				}
-				else
-				{
-					for (int i = 0; i < count; ++i)
+					string s = "";
+					for (int j = n - 1; j >= 0; --j)
 					{
-						for (int j = wordcount[i] - 1; j >= 0; --j)
-						{
-							if (j > 0) cout << "*";
-							cout << words[i][j];
-						}
-						cout << endl;
+						if (j < n - 1) s += sepc;
+						s += tok[j];
 					}
+					lines[i] = s;
 				}
+				rebuildWords(lines, count, words, wordcount);
 				fpress = true;
-
 			}
 			else
 			{
-				for (int i = 0; i < count; ++i)
-				{
-					cout << lines[i] << endl;
-				}
+				for (int i = 0; i < count; ++i) lines[i] = bakF[i];
+				rebuildWords(lines, count, words, wordcount);
 				fpress = false;
 			}
-
+			for (int i = 0; i < count; ++i) { printLine(hcon, lines[i], cpress, giword, ipress); cout << endl; }
 		}
 		if (command == "g")
 		{
@@ -265,6 +300,7 @@ int main()
 				cin >> oldc;
 				cout << "새문자:";
 				cin >> newc;
+				for (int i = 0; i < count; ++i) bakG[i] = lines[i];
 				for (int i = 0; i < count; ++i)
 				{
 					string g = lines[i];
@@ -272,89 +308,76 @@ int main()
 					{
 						if (g[j] == oldc) g[j] = newc;
 					}
-					cout << g << endl;
+					lines[i] = g;
 				}
+				rebuildWords(lines, count, words, wordcount);
 				gpress = true;
 			}
-
 			else
 			{
-				for (int i = 0; i < count; ++i)
-				{
-					cout << lines[i] << endl;
-				}
+				for (int i = 0; i < count; ++i) lines[i] = bakG[i];
+				rebuildWords(lines, count, words, wordcount);
 				gpress = false;
 			}
+			for (int i = 0; i < count; ++i) { printLine(hcon, lines[i], cpress, giword, ipress); cout << endl; }
 		}
 		if (command == "h")
 		{
 			if (hpress == false)
 			{
+				for (int i = 0; i < count; ++i) bakH[i] = lines[i];
 				for (int i = 0; i < count; ++i)
 				{
 					string g = lines[i];
-					for (int j = 0; j < g.length(); ++j)
+					string s = "";
+					for (int j = 0; j < (int)g.length(); ++j)
 					{
-						cout << g[j];
+						s += g[j];
 						if (g[j] >= '0' && g[j] <= '9')
 						{
-							cout << endl;
+							s += '\n';
 						}
-
 					}
-					cout << endl;
+					lines[i] = s;
 				}
+				rebuildWords(lines, count, words, wordcount);
 				hpress = true;
 			}
 			else
 			{
-				for (int i = 0; i < count; ++i)
-				{
-					cout << lines[i] << endl;
-				}
+				for (int i = 0; i < count; ++i) lines[i] = bakH[i];
+				rebuildWords(lines, count, words, wordcount);
 				hpress = false;
 			}
+			for (int i = 0; i < count; ++i) { printLine(hcon, lines[i], cpress, giword, ipress); cout << endl; }
 		}
 		if (command == "i")
 		{
 			if (ipress == false)
 			{
-				HANDLE hcon = GetStdHandle(STD_OUTPUT_HANDLE);
-				int total = 0;
-				string w;
-				cin >> w;
-				for (int i = 0; i < count; ++i)
-				{
-					
-					for (int j = 0; j < wordcount[i]; ++j)
-					{
-						if (j > 0) cout << " ";
-						if (tolow(words[i][j]) == tolow(w))
-						{
-							SetConsoleTextAttribute(hcon, 12);
-							cout << words[i][j];        
-							SetConsoleTextAttribute(hcon, 7);
-							++total;
-							
-						}
-						else
-						{
-							cout << words[i][j];
-						}
-					}
-						cout << endl;
-				}
-				cout << total <<"개" << endl;
+				cin >> giword;
 				ipress = true;
 			}
 			else
 			{
-				for (int i = 0; i < count; ++i)
-				{
-					cout << lines[i] << endl;
-				}
-				ipress =false;
+				ipress = false;
 			}
+
+			int total = 0;
+			for (int i = 0; i < count; ++i)
+			{
+				for (int j = 0; j < wordcount[i]; ++j)
+				{
+					if (tolow(words[i][j]) == tolow(giword)) ++total;
+				}
+			}
+
+			for (int i = 0; i < count; ++i)
+			{
+				printLine(hcon, lines[i], cpress, giword, ipress);
+				cout << endl;
+			}
+			if (ipress) cout << total << "개" << endl;
 		}
 		if (command == "q")
 		{
