@@ -18,12 +18,10 @@ struct point {
 };
 
 point plist[10];
-int bottom;
-int pcount;
+bool  filled[10];
 bool fpress = false;
-point backup[10];
-int backupbottom;
-int backuppcount;
+point backupPlist[10];
+bool  backupFilled[10];
 
 double dist(point p)
 {
@@ -38,28 +36,34 @@ double dist2(point a, point b)
 	return sqrt(dx * dx + dy * dy + dz * dz);
 }
 
-int slot(int k)
+int countFilled()
 {
-	return (bottom + k) % 10;
+	int c = 0;
+	for (int i = 0; i < 10; ++i) if (filled[i]) ++c;
+	return c;
+}
+int topIndex()
+{
+	for (int i = 9; i >= 0; --i) if (filled[i]) return i;
+	return -1;
+}
+int botIndex()
+{
+	for (int i = 0; i < 10; ++i) if (filled[i]) return i;
+	return -1;
 }
 
-bool used(int i)
-{
-	int rel = (i - bottom + 10) % 10;
-	return rel < pcount;
-}
 void printlist()
 {
 	for (int i = 9; i >= 0; --i)
 	{
 		cout << i;
-		if (used(i))
+		if (filled[i])
 		{
 			cout << " " << plist[i].x << " " << plist[i].y << " " << plist[i].z;
 		}
 		cout << endl;
 	}
-
 }
 int main()
 {
@@ -75,10 +79,17 @@ int main()
 			point p;
 			cin >> p.x >> p.y >> p.z;
 
-			if (pcount < 10)
+			if (countFilled() < 10)
 			{
-				plist[slot(pcount)] = p;
-				pcount++;
+				int t = topIndex();
+				int at = -1;
+				for (int s = 1; s <= 10; ++s)
+				{
+					int idx = (t + s + 10) % 10;
+					if (!filled[idx]) { at = idx; break; }
+				}
+				plist[at] = p;
+				filled[at] = true;
 			}
 			else
 			{
@@ -88,38 +99,44 @@ int main()
 		}
 		if (command == "-")
 		{
-			if (pcount > 0)
-			{
-				pcount--;
-			}
+			int t = topIndex();
+			if (t >= 0) filled[t] = false;
 			printlist();
 		}
 		if (command == "d")
 		{
-			if (pcount > 0)
-			{
-				bottom = (bottom + 1) % 10;
-				pcount--;
-			}
+			int b = botIndex();
+			if (b >= 0) filled[b] = false;
 			printlist();
 		}
 		if (command == "a")
 		{
-			cout << pcount << "개" << endl;
+			cout << countFilled() << "개" << endl;
 		}
 		if (command == "e")
 		{
 			point p;
 			cin >> p.x >> p.y >> p.z;
 
-			if (pcount < 10)
+			if (countFilled() < 10)
 			{
-				for (int k = pcount - 1; k >= 0; --k)
+				if (!filled[0])
 				{
-					plist[slot(k + 1)] = plist[slot(k)];
+					plist[0] = p;
+					filled[0] = true;
 				}
-				plist[bottom] = p;
-				pcount++;
+				else
+				{
+					int gap = -1;
+					for (int i = 1; i < 10; ++i) if (!filled[i]) { gap = i; break; }
+					for (int i = gap; i >= 1; --i)
+					{
+						plist[i] = plist[i - 1];
+						filled[i] = filled[i - 1];
+					}
+					plist[0] = p;
+					filled[0] = true;
+				}
 			}
 			else
 			{
@@ -129,55 +146,52 @@ int main()
 		}
 		if (command == "b")
 		{
-			if (pcount > 0)
+			point np[10];
+			bool nf[10];
+			for (int i = 0; i < 10; ++i)
 			{
-				point tmp[10];
-				for (int k = 0; k < pcount; ++k) tmp[k] = plist[slot(k)];
-
-				bottom = (bottom + 9) % 10;
-
-				for (int k = 0; k < pcount; ++k) plist[slot(k)] = tmp[k];
+				int to = (i + 9) % 10;
+				np[to] = plist[i];
+				nf[to] = filled[i];
 			}
+			for (int i = 0; i < 10; ++i) { plist[i] = np[i]; filled[i] = nf[i]; }
 			printlist();
 		}
 		if (command == "c")
 		{
-			bottom = 0;
-			pcount = 0;
+			for (int i = 0; i < 10; ++i) filled[i] = false;
 			printlist();
 		}
 		if (command == "f")
 		{
 			if (fpress == false)
 			{
-				for (int i = 0; i < 10; ++i) backup[i] = plist[i];
-				backupbottom = bottom;
-				backuppcount = pcount;
+				for (int i = 0; i < 10; ++i) { backupPlist[i] = plist[i]; backupFilled[i] = filled[i]; }
 
-				
-				point tmp[10];
-				for (int k = 0; k < pcount; ++k) tmp[k] = plist[slot(k)];
-				for (int k = 0; k < pcount; ++k) plist[k] = tmp[k];
-				bottom = 0;
+				point arr[10];
+				int m = 0;
+				for (int i = 0; i < 10; ++i) if (filled[i]) arr[m++] = plist[i];
 
-				
-				for (int i = 0; i < pcount - 1; ++i)
+				for (int i = 0; i < m - 1; ++i)
 				{
-					for (int j = 0; j < pcount - 1 - i; ++j)
+					for (int j = 0; j < m - 1 - i; ++j)
 					{
-						if (dist(plist[j]) > dist(plist[j + 1]))
+						if (dist(arr[j]) > dist(arr[j + 1]))
 						{
-							point t = plist[j];
-							plist[j] = plist[j + 1];
-							plist[j + 1] = t;
+							point t = arr[j];
+							arr[j] = arr[j + 1];
+							arr[j + 1] = t;
 						}
 					}
 				}
 
+				for (int i = 0; i < 10; ++i) filled[i] = false;
+				for (int i = 0; i < m; ++i) { plist[i] = arr[i]; filled[i] = true; }
+
 				for (int i = 9; i >= 0; --i)
 				{
 					cout << i;
-					if (i < pcount)
+					if (filled[i])
 					{
 						cout << " " << plist[i].x << " " << plist[i].y << " " << plist[i].z;
 						cout << "   " << dist(plist[i]);
@@ -189,17 +203,18 @@ int main()
 			}
 			else
 			{
-				for (int i = 0; i < 10; ++i) plist[i] = backup[i];
-				bottom = backupbottom;
-				pcount = backuppcount;
-
+				for (int i = 0; i < 10; ++i) { plist[i] = backupPlist[i]; filled[i] = backupFilled[i]; }
 				printlist();
 				fpress = false;
 			}
 		}
 		if (command == "g")
 		{
-			if (pcount < 2)
+			int idx[10];
+			int m = 0;
+			for (int i = 0; i < 10; ++i) if (filled[i]) idx[m++] = i;
+
+			if (m < 2)
 			{
 				cout << "점이 2개 이상 필요합니다" << endl;
 			}
@@ -209,12 +224,12 @@ int main()
 				int maxa, maxb, mina, minb;
 				bool first = true;
 
-				for (int p1 = 0; p1 < pcount; ++p1)
+				for (int p1 = 0; p1 < m; ++p1)
 				{
-					for (int p2 = p1 + 1; p2 < pcount; ++p2)
+					for (int p2 = p1 + 1; p2 < m; ++p2)
 					{
-						int ia = slot(p1);
-						int ib = slot(p2);
+						int ia = idx[p1];
+						int ib = idx[p2];
 						double d = dist2(plist[ia], plist[ib]);
 
 						cout << plist[ia].x << " " << plist[ia].y << " " << plist[ia].z;

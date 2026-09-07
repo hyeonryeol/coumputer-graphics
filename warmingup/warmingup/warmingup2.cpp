@@ -35,7 +35,12 @@ void rebuildWords(string lines[], int count, string words[][30], int wordcount[]
 {
 	for (int i = 0; i < count; ++i)
 	{
-		istringstream iss(lines[i]);
+		string t = lines[i];
+		for (int j = 0; j < (int)t.length(); ++j)
+		{
+			if (t[j] == '*') t[j] = ' ';
+		}
+		istringstream iss(t);
 		string word;
 		int n = 0;
 		while (iss >> word)
@@ -54,14 +59,14 @@ void printLine(HANDLE hcon, const string& line, bool hc, const string& iword, bo
 	int j = 0;
 	while (j < n)
 	{
-		if (isspace((unsigned char)line[j]))  
+		if (isspace((unsigned char)line[j]) || line[j] == '*')
 		{
 			cout << line[j];
 			++j;
 			continue;
 		}
 		int k = j;
-		while (k < n && !isspace((unsigned char)line[k])) ++k;   
+		while (k < n && !isspace((unsigned char)line[k]) && line[k] != '*') ++k;
 		string w = line.substr(j, k - j);
 
 		bool red = false;
