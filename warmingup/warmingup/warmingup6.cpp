@@ -1,4 +1,4 @@
-#include <string>
+﻿#include <string>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -23,7 +23,7 @@ int nf = 0;
 int main()
 {
 	string fname;
-	cout << "input data file name: ";
+	cout << "file name: ";
 	cin >> fname;
 
 	ifstream fin(fname);
