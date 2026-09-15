@@ -1,4 +1,4 @@
-#include <GL/glew.h>
+﻿#include <GL/glew.h>
 #include <GL/glfw3.h>
 #include <iostream>
 #include <cstdlib>
@@ -26,7 +26,7 @@ void removeRect(int idx)
         rx2[i] = rx2[i + 1];  ry2[i] = ry2[i + 1];
         r1[i] = r1[i + 1];   g1[i] = g1[i + 1];   b1[i] = b1[i + 1];
     }
-    acount--;
+    
 }
 void makeRandRect(int idx, float cx, float cy)
 {
@@ -147,7 +147,7 @@ void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
-        // 위에 있는 것부터(뒤에서부터) 찾아 하나만 잡기
+        // 위에 있는 것부터 찾아 하나만 잡기
         for (int i = acount - 1; i >= 0; --i)
         {
             if (gx >= rx1[i] && gx <= rx2[i] && gy >= ry1[i] && gy <= ry2[i])
