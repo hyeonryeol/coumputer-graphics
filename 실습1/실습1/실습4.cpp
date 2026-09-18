@@ -16,12 +16,27 @@ float rx2[5] = {};
 float ry2[5] = {};
 int mousecount = 0;
 
+
+
 bool move1 = false;
 bool move2 = false;
 bool move3 = false;
-int justcount = 0;
-bool moveyang[5] = {};
-bool moveum[5] = { -1 };
+bool move4 = false;
+bool move5 = false;
+
+int phase3[5] = {};
+int   state1[5] = {};
+int   state4[5] = {};     // move4 전용 0=커지는중 1=작아지는중
+int   state[5] = {};
+int   nextDir[5] = {};
+float dropLeft[5] = {};
+
+float orirx1[5] = {};
+float oriry1[5] = {};
+float orirx2[5] = {};
+float oriry2[5] = {};
+bool origin = false;
+
 void makerect(int idx, float cx, float cy)
 {
 	float hw = 0.05f + rand() / (float)RAND_MAX * 0.1f;
@@ -30,10 +45,18 @@ void makerect(int idx, float cx, float cy)
 	rx1[idx] = cx - hw;  ry1[idx] = cy - hh;
 	rx2[idx] = cx + hw;  ry2[idx] = cy + hh;
 
+	orirx1[idx] = rx1[idx];
+	orirx2[idx] = rx2[idx];
+	oriry1[idx] = ry1[idx];
+	oriry2[idx] = ry2[idx];
+
 	r1[idx] = rand() / (float)RAND_MAX;
 	g1[idx] = rand() / (float)RAND_MAX;
 	b1[idx] = rand() / (float)RAND_MAX;
+
 }
+
+
 
 int main()
 {
@@ -83,87 +106,132 @@ int main()
 		// 여기에 그리기 코드
 		for (int i = 0; i < mousecount; ++i)
 		{
-			glColor3f(r1[i], g1[i], b1[i]);
-			glRectf(rx1[i], ry1[i], rx2[i], ry2[i]);
+			if (origin == false)
+			{
+
+				glColor3f(r1[i], g1[i], b1[i]);
+				glRectf(rx1[i], ry1[i], rx2[i], ry2[i]);
+			}
+			else
+			{
+				glColor3f(r1[i], g1[i], b1[i]);
+				glRectf(orirx1[i], oriry1[i], orirx2[i], oriry2[i]);
+			}
 
 		}
 		if (move1 == true)
 		{
 			for (int i = 0; i < mousecount; ++i)
 			{
-				if (rx2[i] < 1.0 && ry2[i] < 1.0 && moveyang[i] == 0)
+				if (state1[i] == 0)          // 오른쪽 위로
 				{
-
 					rx1[i] += 0.001f;
 					ry1[i] += 0.001f;
 					rx2[i] += 0.001f;
 					ry2[i] += 0.001f;
-					if (rx2[i] >= 1.0 || ry2[i] >= 1.0)
-					{
-						moveyang[i] = -1;
-						moveum[i] = 0;
-					}
+					if (rx2[i] >= 1.0f || ry2[i] >= 1.0f)
+						state1[i] = 1;
 				}
-				else if (rx1[i] > -1 && ry1[i] > -1 && moveum[i] == 0)
+				else                          // 왼쪽 아래로
 				{
 					rx1[i] -= 0.001f;
 					ry1[i] -= 0.001f;
 					rx2[i] -= 0.001f;
 					ry2[i] -= 0.001f;
-					if (rx1[i] <= -1.0 || ry1[i] <= -1.0)
-					{
-						moveyang[i] = 0;
-						moveum[i] = -1;
-					}
+					if (rx1[i] <= -1.0f || ry1[i] <= -1.0f)
+						state1[i] = 0;
 				}
-
 			}
 		}
 		if (move2 == true)
 		{
 			for (int i = 0; i < mousecount; ++i)
 			{
-				if (rx2[i] <= 1.0 && moveyang[i] == 0)
+				if (state[i] == 0)
 				{
-					rx1[i] += 0.001f;
-					rx2[i] += 0.001f;
-					if (rx2[i] >= 1.0)
+					rx1[i] += 0.001f;  rx2[i] += 0.001f;
+					if (rx2[i] >= 1.0f)
 					{
-						moveyang[i] = -1;
-						moveum[i] = 0;
-						move3 = true;
+						state[i] = 2;
+						nextDir[i] = 1;
+						dropLeft[i] = 0.1f;
 					}
 				}
-				else if (rx1[i] >= -1.0 && moveum[i] == 0)
+				else if (state[i] == 1)
 				{
-					rx1[i] -= 0.001f;
-					rx2[i] -= 0.001f;
-					if (rx1[i] <= -1.0)
+					rx1[i] -= 0.001f;  rx2[i] -= 0.001f;
+					if (rx1[i] <= -1.0f)
 					{
-						moveyang[i] = 0;
-						moveum[i] = -1;
-						move3 = true;
+						state[i] = 2;
+						nextDir[i] = 0;
+						dropLeft[i] = 0.1f;
 					}
+				}
+				else if (state[i] == 2)
+				{
+					float step = 0.001f;
+					ry1[i] -= step;  ry2[i] -= step;
+					dropLeft[i] -= step;
+					if (dropLeft[i] <= 0.0f)
+						state[i] = nextDir[i];
 				}
 			}
 		}
 		if (move3 == true)
 		{
-			for (int k = 0; k < 5; ++k)
+			float s = 0.002f;
+			for (int i = 0; i < mousecount; ++i)
 			{
-				for (int i = 0; i < mousecount; ++i)
-
+				if (phase3[i] == 0)              // 오른쪽으로
 				{
-					ry1[i] -= 0.01f;
-					ry2[i] -= 0.01f;
+					rx1[i] += s;  rx2[i] += s;
+					if (rx2[i] >= 1.0f) phase3[i] = 1;   // 오른쪽 벽 닿음
 				}
-				justcount++;
+				else if (phase3[i] == 1)         // 아래로
+				{
+					ry1[i] -= s;  ry2[i] -= s;
+					if (ry1[i] <= -1.0f) phase3[i] = 2;  // 바닥 닿음
+				}
+				else if (phase3[i] == 2)         // 왼쪽으로
+				{
+					rx1[i] -= s;  rx2[i] -= s;
+					if (rx1[i] <= -1.0f) phase3[i] = 3;  // 왼쪽 벽 닿음
+				}
+				else if (phase3[i] == 3)         // 위로
+				{
+					ry1[i] += s;  ry2[i] += s;
+					if (ry2[i] >= 1.0f) phase3[i] = 0;   // 천장 닿음
+				}
 			}
-			if (justcount == 5)
+		}
+		if (move4 == true)
+		{
+			float s = 0.001f;
+			for (int i = 0; i < mousecount; ++i)
 			{
-
-				move3 = false;
-				move2 = true;
+				float w = rx2[i] - rx1[i];             // 지금 가로 크기
+				float ow = orirx2[i] - orirx1[i];      // 원래 가로 크기
+				if (state4[i] == 0)
+				{
+					rx1[i] -= s;  ry1[i] -= s;
+					rx2[i] += s;  ry2[i] += s;
+					if (w >= ow * 2.0f) state4[i] = 1;
+				}
+				else
+				{
+					rx1[i] += s;  ry1[i] += s;
+					rx2[i] -= s;  ry2[i] -= s;
+					if (w <= ow) state4[i] = 0;
+				}
+			}
+		}
+		if (move5 == true)
+		{
+			for (int i = 0; i < mousecount; ++i)
+			{
+				r1[i] = rand() / (float)RAND_MAX;
+				g1[i] = rand() / (float)RAND_MAX;
+				b1[i] = rand() / (float)RAND_MAX;
 			}
 		}
 		glfwSwapBuffers(window);
@@ -199,6 +267,41 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 				move2 = true;
 			else
 				move2 = false;
+			break;
+		}
+		case GLFW_KEY_3:
+		{
+			move3 = !move3;
+			break;
+		}
+		case GLFW_KEY_4:
+		{
+			move4 = !move4;
+			break;
+		}
+		case GLFW_KEY_5:
+		{
+			move5 = !move5;
+			break;
+		}
+		case GLFW_KEY_M:
+		{
+			origin = !origin;
+			break;
+		}
+		case GLFW_KEY_S:
+		{
+			move1 = false;
+			move2 = false;
+			move3 = false;
+			move4 = false;
+			move5 = false;
+			break;
+		}
+		case GLFW_KEY_R:
+		{
+		
+			mousecount = 0;
 			break;
 		}
 		}
