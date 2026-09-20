@@ -26,7 +26,7 @@ bool move5 = false;
 
 int phase3[5] = {};
 int   state1[5] = {};
-int   state4[5] = {};     // move4 전용 0=커지는중 1=작아지는중
+int   state4[5] = {};    
 int   state[5] = {};
 int   nextDir[5] = {};
 float dropLeft[5] = {};
