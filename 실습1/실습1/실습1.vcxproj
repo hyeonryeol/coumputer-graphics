@@ -146,7 +146,14 @@
     <ClCompile Include="실습5.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="실습6.cpp" />
+    <ClCompile Include="실습6.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="실습7.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="vertex.glsl" />
+    <None Include="fragment.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
