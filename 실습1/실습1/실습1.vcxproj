@@ -155,7 +155,10 @@
     <ClCompile Include="실습7.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="실습8.cpp" />
+    <ClCompile Include="실습8.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="실습9.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vertex.glsl" />

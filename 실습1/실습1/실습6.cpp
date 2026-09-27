@@ -9,7 +9,7 @@ struct Rect {
 	float r, g, b;          // 현재 색
 	float dx, dy;           // 프레임당 이동량 (방향)
 	bool moving;            // 쪼개져서 움직이는 조각인가
-	bool alive;             // 살아있나 (작아지면 false)
+	bool alive;             // 살아있나 
 };
 
 Rect rects[200];
