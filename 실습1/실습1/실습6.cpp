@@ -47,7 +47,7 @@ void split4(int i)
 	float hh = (rects[i].y2 - rects[i].y1) / 2.0f;
 
 	Rect base = rects[i];        // 색 등 복사용
-	float d = 0.003f;            // 이동 속도
+	float d = 0.00009f;            // 이동 속도
 
 	// 8방향 (좌 우 하 상 + 대각선 4개)
 	float dirx[8] = { -d, d, 0, 0, -d, d, -d, d };
@@ -162,7 +162,7 @@ int main()
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		float s = 0.0008f;   // 축소 속도
+		float s = 0.000008f;   // 축소 속도
 		for (int i = 0; i < count; ++i)
 		{
 			if (rects[i].alive == false) continue;

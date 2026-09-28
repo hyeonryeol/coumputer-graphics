@@ -30,6 +30,7 @@ int   state4[5] = {};
 int   state[5] = {};
 int   nextDir[5] = {};
 float dropLeft[5] = {};
+int   vdir2[5] = {};     // move2 수직 방향: -1 아래, +1 위
 
 float orirx1[5] = {};
 float oriry1[5] = {};
@@ -54,6 +55,8 @@ void makerect(int idx, float cx, float cy)
 	g1[idx] = rand() / (float)RAND_MAX;
 	b1[idx] = rand() / (float)RAND_MAX;
 
+	state[idx] = 0;      // move2 오른쪽부터 시작
+	vdir2[idx] = -1;     // move2 아래로 시작
 }
 
 
@@ -80,6 +83,8 @@ int main()
 
 	// 컨텍스트 활성화
 	glfwMakeContextCurrent(window);
+	// 모니터 주사율(약 60FPS)로 제한해 이동 속도를 일정하게 만든다
+	glfwSwapInterval(1);
 
 	// GLEW 초기화
 	glewExperimental = GL_TRUE;
@@ -125,19 +130,19 @@ int main()
 			{
 				if (state1[i] == 0)          // 오른쪽 위로
 				{
-					rx1[i] += 0.001f;
-					ry1[i] += 0.001f;
-					rx2[i] += 0.001f;
-					ry2[i] += 0.001f;
+					rx1[i] += 0.01f;
+					ry1[i] += 0.01f;
+					rx2[i] += 0.01f;
+					ry2[i] += 0.01f;
 					if (rx2[i] >= 1.0f || ry2[i] >= 1.0f)
 						state1[i] = 1;
 				}
 				else                          // 왼쪽 아래로
 				{
-					rx1[i] -= 0.001f;
-					ry1[i] -= 0.001f;
-					rx2[i] -= 0.001f;
-					ry2[i] -= 0.001f;
+					rx1[i] -= 0.01f;
+					ry1[i] -= 0.01f;
+					rx2[i] -= 0.01f;
+					ry2[i] -= 0.01f;
 					if (rx1[i] <= -1.0f || ry1[i] <= -1.0f)
 						state1[i] = 0;
 				}
@@ -149,7 +154,7 @@ int main()
 			{
 				if (state[i] == 0)
 				{
-					rx1[i] += 0.001f;  rx2[i] += 0.001f;
+					rx1[i] += 0.01f;  rx2[i] += 0.01f;
 					if (rx2[i] >= 1.0f)
 					{
 						state[i] = 2;
@@ -159,7 +164,7 @@ int main()
 				}
 				else if (state[i] == 1)
 				{
-					rx1[i] -= 0.001f;  rx2[i] -= 0.001f;
+					rx1[i] -= 0.01f;  rx2[i] -= 0.01f;
 					if (rx1[i] <= -1.0f)
 					{
 						state[i] = 2;
@@ -169,9 +174,12 @@ int main()
 				}
 				else if (state[i] == 2)
 				{
-					float step = 0.001f;
-					ry1[i] -= step;  ry2[i] -= step;
+					float step = 0.01f;
+					ry1[i] += vdir2[i] * step;  ry2[i] += vdir2[i] * step;
 					dropLeft[i] -= step;
+					// 바닥에 닿으면 위로, 천장에 닿으면 아래로 방향을 뒤집는다
+					if (vdir2[i] < 0 && ry1[i] <= -1.0f) vdir2[i] = 1;
+					if (vdir2[i] > 0 && ry2[i] >= 1.0f)  vdir2[i] = -1;
 					if (dropLeft[i] <= 0.0f)
 						state[i] = nextDir[i];
 				}
@@ -179,7 +187,7 @@ int main()
 		}
 		if (move3 == true)
 		{
-			float s = 0.002f;
+			float s = 0.02f;
 			for (int i = 0; i < mousecount; ++i)
 			{
 				if (phase3[i] == 0)              // 오른쪽으로
@@ -206,7 +214,7 @@ int main()
 		}
 		if (move4 == true)
 		{
-			float s = 0.001f;
+			float s = 0.01f;
 			for (int i = 0; i < mousecount; ++i)
 			{
 				float w = rx2[i] - rx1[i];             // 지금 가로 크기
@@ -287,6 +295,11 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		case GLFW_KEY_M:
 		{
 			origin = !origin;
+			move1 = false;
+			move2 = false;
+			move3 = false;
+			move4 = false;
+			move5 = false;
 			break;
 		}
 		case GLFW_KEY_S:
@@ -300,7 +313,11 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		}
 		case GLFW_KEY_R:
 		{
-		
+			move1 = false;
+			move2 = false;
+			move3 = false;
+			move4 = false;
+			move5 = false;
 			mousecount = 0;
 			break;
 		}

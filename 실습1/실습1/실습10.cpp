@@ -1,11 +1,10 @@
-﻿#include <GL/glew.h>
+#include <GL/glew.h>
 #include <GL/glfw3.h>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <cstdlib>
 #include <ctime>
-#include <cmath>
 
 // 사용자 정의 함수
 std::string filetobuf(const char* file);
@@ -25,48 +24,24 @@ GLuint fragmentShader;
 GLuint vao, vbo[2];
 
 // 꼭짓점 공책
-GLfloat position[900][3];
-GLfloat color[900][3];
+GLfloat position[300][3];
+GLfloat color[300][3];
 int n = 0;   // 공책에 적힌 꼭짓점 수
-
-// 삼각형이 지나간 자리저장
-const int MAXTRAIL = 200;
-float trailx[4][MAXTRAIL], traily[4][MAXTRAIL];
-int trailN[4] = {};            // 각 삼각형 자취에 쌓인 점 개수
-int trailstart[4], traillen[4];// position 배열에서 자취가 그려질 위치/개수
 struct Triangle {
 	float r, g, b;
 	float size;
 	float x, y;
-	float dx, dy;   // 한 프레임에 움직이는 양
-	float angle2;
-	float angle4;
-	float radius;   // 반지름
-	float theta;    // 현재 각도
 };
-const float PI = 3.14159265f;
-float rad(float deg) { return deg * PI / 180.0f; }   // 도 -> 라디안
-bool rocate[4] = { false };
-bool wasHwall[4] = {};   // 지난 프레임에 좌우 벽에 닿아 있었나
-int rdir[4] = { 1, 1, 1, 1 };
-int ycount[4] = {};
 int mouseclik = -1;
+int rightclick = -1;
 float lastx, lasty;
-Triangle tri[4]; // 0 오른쪽위 1 왼쪽위 2 왼쪽아래 3 오른쪽아래
-int moving = 0;
-
-float randomSpeed()
-{
-	float speed = 0.008f;
-
-	speed = -speed;
-	return speed;
-}
-int dir = 0;
+float rightx, righty;
+Triangle tri[10]; // 0 오른쪽위 1 왼쪽위 2 왼쪽아래 3 오른쪽아래
+// 공책 0번부터 3번 줄에 사분면 십자선 적기
 void makeLine()
 {
 	// 가로선 왼쪽 끝, 오른쪽 끝, 세로선 아래 끝, 위 끝
-	GLfloat line[4][2] = { { tri[0].x, tri[0].y}, {1.0f, 0.0f}, {0.0f, -1.0f}, {0.0f, 1.0f} };
+	GLfloat line[4][2] = { { 0.0f, 0.0f }, { 0.0f, 0.0f }, { 0.25f, -1.0f }, { 0.25f, 1.0f } };
 
 	for (int i = 0; i < 4; ++i)
 	{
@@ -83,14 +58,10 @@ void makeLine()
 }
 void maketri(int idx)
 {
-	tri[idx].dx = randomSpeed();
-	tri[idx].dy = randomSpeed();
-	tri[idx].angle2 += rad(90.0f);
-	tri[idx].angle4 += rad(0.0005f);
 
 	if (idx == 0)
 	{
-		tri[idx].x = rand() / (float)RAND_MAX * 0.7f + 0.15f;
+		tri[idx].x = rand() / (float)RAND_MAX * 0.1f + 0.1f;
 		tri[idx].y = rand() / (float)RAND_MAX * 0.7f + 0.15f;
 		tri[idx].r = rand() / (float)RAND_MAX;
 		tri[idx].g = rand() / (float)RAND_MAX;
@@ -99,7 +70,7 @@ void maketri(int idx)
 	}
 	else if (idx == 1)
 	{
-		tri[idx].x = rand() / (float)RAND_MAX * 0.7f - 0.85f;
+		tri[idx].x = rand() / (float)RAND_MAX * 0.1f - 0.85f;
 		tri[idx].y = rand() / (float)RAND_MAX * 0.7f + 0.15f;
 		tri[idx].r = rand() / (float)RAND_MAX;
 		tri[idx].g = rand() / (float)RAND_MAX;
@@ -108,7 +79,7 @@ void maketri(int idx)
 	}
 	else if (idx == 2)
 	{
-		tri[idx].x = rand() / (float)RAND_MAX * 0.7f - 0.85f;
+		tri[idx].x = rand() / (float)RAND_MAX * 0.1f - 0.5f;
 		tri[idx].y = rand() / (float)RAND_MAX * 0.7f - 0.85f;
 		tri[idx].r = rand() / (float)RAND_MAX;
 		tri[idx].g = rand() / (float)RAND_MAX;
@@ -117,7 +88,34 @@ void maketri(int idx)
 	}
 	else if (idx == 3)
 	{
-		tri[idx].x = rand() / (float)RAND_MAX * 0.7f + 0.15f;
+		tri[idx].x = rand() / (float)RAND_MAX * 0.1f;
+		tri[idx].y = rand() / (float)RAND_MAX * 0.7f - 0.85f;
+		tri[idx].r = rand() / (float)RAND_MAX;
+		tri[idx].g = rand() / (float)RAND_MAX;
+		tri[idx].b = rand() / (float)RAND_MAX;
+		tri[idx].size = 0.05f + rand() / (float)RAND_MAX * 0.1f;
+	}
+	else if (idx == 4)
+	{
+		tri[idx].x = rand() / (float)RAND_MAX * 0.1f - 0.5f;
+		tri[idx].y = rand() / (float)RAND_MAX * 0.7f - 0.85f;
+		tri[idx].r = rand() / (float)RAND_MAX;
+		tri[idx].g = rand() / (float)RAND_MAX;
+		tri[idx].b = rand() / (float)RAND_MAX;
+		tri[idx].size = 0.05f + rand() / (float)RAND_MAX * 0.1f;
+	}
+	else if (idx == 5)
+	{
+		tri[idx].x = rand() / (float)RAND_MAX * 0.1f - 0.1f;
+		tri[idx].y = rand() / (float)RAND_MAX * 0.7f - 0.85f;
+		tri[idx].r = rand() / (float)RAND_MAX;
+		tri[idx].g = rand() / (float)RAND_MAX;
+		tri[idx].b = rand() / (float)RAND_MAX;
+		tri[idx].size = 0.05f + rand() / (float)RAND_MAX * 0.1f;
+	}
+	else if (idx == 6)
+	{
+		tri[idx].x = rand() / (float)RAND_MAX * 0.1f - 0.6f;
 		tri[idx].y = rand() / (float)RAND_MAX * 0.7f - 0.85f;
 		tri[idx].r = rand() / (float)RAND_MAX;
 		tri[idx].g = rand() / (float)RAND_MAX;
@@ -125,12 +123,10 @@ void maketri(int idx)
 		tri[idx].size = 0.05f + rand() / (float)RAND_MAX * 0.1f;
 	}
 
-
 }
-// 공책 0번 줄부터 삼각형 4개 적기
 void makevertax()
 {
-	n = 0;
+	n = 4;
 	for (int i = 0; i < 4; ++i)
 	{
 		position[n][0] = tri[i].x - tri[i].size;;      // x
@@ -156,186 +152,38 @@ void makevertax()
 		color[n + 2][2] = tri[i].b;
 		n += 3;
 	}
-	if (moving == 2)
+	for (int i = 4; i < 7; ++i)
 	{
-		n = 0;
-		for (int i = 0; i < 4; ++i)
-		{
-			float s = tri[i].size;
-			float a = tri[i].angle2;
-			float c = cosf(a), sn = sinf(a);
-	
-			float ox[3] = { -s,  s, 0.0f };
-			float oy[3] = { -s, -s, s };
+		position[n][0] = tri[i].x;      // x
+		position[n][1] = tri[i].y;      // y
+		position[n][2] = 0.0f;      // z
 
-			for (int k = 0; k < 3; ++k)
-			{
-				// angle 만큼 회전
-				float rx = ox[k] * c - oy[k] * sn;
-				float ry = ox[k] * sn + oy[k] * c;
-				position[n + k][0] = tri[i].x + rx;
-				position[n + k][1] = tri[i].y + ry;
-				position[n + k][2] = 0.0f;
-				color[n + k][0] = tri[i].r;
-				color[n + k][1] = tri[i].g;
-				color[n + k][2] = tri[i].b;
-			}
-			n += 3;
-		}
-	}
-	if (moving == 4)
-	{
-		n = 0;
-		for (int i = 0; i < 4; ++i)
-		{
-			float s = tri[i].size;
-			float a = tri[i].theta;
-			float c = cosf(a), sn = sinf(a);
-	
-			float ox[3] = { -s,  s, 0.0f };
-			float oy[3] = { -s, -s, s };
+		position[n + 1][0] = tri[i].x + tri[i].size;
+		position[n + 1][1] = tri[i].y;
+		position[n + 1][2] = 0.0f;
 
-			for (int k = 0; k < 3; ++k)
-			{
-				// angle 만큼 회전
-				float rx = ox[k] * c - oy[k] * sn;
-				float ry = ox[k] * sn + oy[k] * c;
-				position[n + k][0] = tri[i].x + rx;
-				position[n + k][1] = tri[i].y + ry;
-				position[n + k][2] = 0.0f;
-				color[n + k][0] = tri[i].r;
-				color[n + k][1] = tri[i].g;
-				color[n + k][2] = tri[i].b;
-			}
-			n += 3;
-		}
-	}
+		position[n + 2][0] = tri[i].x;
+		position[n + 2][1] = tri[i].y - tri[i].size;
+		position[n + 2][2] = 0.0f;
 
-	// 삼각형이 지나온 선
-	for (int i = 0; i < 4; ++i)
-	{
-		trailstart[i] = n;
-		traillen[i] = trailN[i];
-		for (int j = 0; j < trailN[i]; ++j)
-		{
-			position[n][0] = trailx[i][j];
-			position[n][1] = traily[i][j];
-			position[n][2] = 0.0f;
-			color[n][0] = tri[i].r;
-			color[n][1] = tri[i].g;
-			color[n][2] = tri[i].b;
-			n++;
-		}
-	}
-}
-// 삼각형마다 자기 속도만큼 이동
-void move()
-{
-	if (moving == 1)
-	{
-		for (int i = 0; i < 4; ++i)
-		{
-			tri[i].x += tri[i].dx;
-			tri[i].y += tri[i].dy;
-			if (tri[i].x + tri[i].size >= 1 || tri[i].x - tri[i].size <= -1)
-			{
-				tri[i].dx = -tri[i].dx;
-
-			}
-			if (tri[i].y + tri[i].size >= 1 || tri[i].y - tri[i].size <= -1)
-			{
-				tri[i].dy = -tri[i].dy;
-			}
-		}
-	}
-	if (moving == 2)
-	{
-		for (int i = 0; i < 4; ++i)
-		{
-			if (tri[i].x + tri[i].size < 1 && tri[i].x - tri[i].size > -1)
-			{
-				tri[i].x += tri[i].dx;
-			}
-			bool hwall = (tri[i].x + tri[i].size >= 1 || tri[i].x - tri[i].size <= -1);
-			if (hwall)
-			{
-				tri[i].y += tri[i].dy;
-				tri[i].dx = -tri[i].dx;
-				if (!wasHwall[i]) tri[i].angle2 += 3.14159265f;   // 좌우 벽에 처음 닿은 순간만 180도
-				ycount[i] += 1;
-				if (ycount[i] == 7)
-				{
-					tri[i].x += tri[i].dx;
-					ycount[i] = 0;
-				}
-			}
-			bool vwall = (tri[i].y - tri[i].size <= -1 || tri[i].y + tri[i].size >= 1);
-			if (vwall)
-			{
-				tri[i].dy = -tri[i].dy;
-
-			}
-
-			wasHwall[i] = hwall;
-
-		}
-	}
-	if (moving == 3)
-	{
-		for (int i = 0; i < 4; ++i)
-		{
-			tri[i].x += tri[i].dx / 4;
-			tri[i].y += tri[i].dy;
-			if (tri[i].x + tri[i].size >= 1 || tri[i].x - tri[i].size <= -1)
-			{
-				tri[i].dx = -tri[i].dx;
-
-			}
-			if (tri[i].y + tri[i].size >= 1 || tri[i].y - tri[i].size <= -1)
-			{
-				tri[i].dy = -tri[i].dy;
-			}
-		}
-	}
-	if (moving == 4)
-	{
-		
-		for (int i = 0; i < 4; ++i)
-		{
-			tri[i].theta += 0.05f;                  // 각도 → 회전
-			tri[i].radius += rdir[i] * 0.002f;       // 방향대로 반지름 증감
-
-			if (tri[i].radius >= 1.0f) rdir[i] = -1; // 최대 도달 → 줄이기 시작
-			if (tri[i].radius <= 0.1f) rdir[i] = 1; // 최소 도달 → 다시 키우기
-
-			tri[i].x = tri[i].radius * cosf(tri[i].theta);
-			tri[i].y = tri[i].radius * sinf(tri[i].theta);
-		}
-	}
+		position[n + 3][0] = tri[i].x + tri[i].size;
+		position[n + 3][1] = tri[i].y - tri[i].size;
+		position[n + 3][2] = 0.0f;
 
 
-}
-// 지금 삼각형 중심 위치를 자취에 기록 (가득 차면 오래된 점부터 밀어냄)
-void recordTrail()
-{
-	for (int i = 0; i < 4; ++i)
-	{
-		if (trailN[i] < MAXTRAIL)
-		{
-			trailx[i][trailN[i]] = tri[i].x;
-			traily[i][trailN[i]] = tri[i].y;
-			trailN[i]++;
-		}
-		else
-		{
-			for (int j = 1; j < MAXTRAIL; ++j)
-			{
-				trailx[i][j - 1] = trailx[i][j];
-				traily[i][j - 1] = traily[i][j];
-			}
-			trailx[i][MAXTRAIL - 1] = tri[i].x;
-			traily[i][MAXTRAIL - 1] = tri[i].y;
-		}
+		color[n][0] = tri[i].r;         // r
+		color[n][1] = tri[i].g;         // g
+		color[n][2] = tri[i].b;         // b
+		color[n + 1][0] = tri[i].r;
+		color[n + 1][1] = tri[i].g;
+		color[n + 1][2] = tri[i].b;
+		color[n + 2][0] = tri[i].r;
+		color[n + 2][1] = tri[i].g;
+		color[n + 2][2] = tri[i].b;
+		color[n + 3][0] = tri[i].r;
+		color[n + 3][1] = tri[i].g;
+		color[n + 3][2] = tri[i].b;
+		n += 4;
 	}
 }
 int main()
@@ -350,7 +198,7 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// 윈도우 생성
-	GLFWwindow* window = glfwCreateWindow(width, height, "실습9", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(width, height, "실습8", nullptr, nullptr);
 	if (!window)
 	{
 		std::cerr << "윈도우 생성 실패" << std::endl;
@@ -358,7 +206,6 @@ int main()
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
-	glfwSwapInterval(1);   // 모니터 주사율에 맞춰 그려서 속도를 일정하게
 
 	// GLEW 초기화
 	glewExperimental = GL_TRUE;
@@ -376,6 +223,9 @@ int main()
 	maketri(1);
 	maketri(2);
 	maketri(3);
+	maketri(4);
+	maketri(5);
+	maketri(6);
 	// 세이더 읽어서 세이더 프로그램 만들기
 	make_vertexShaders();
 	make_fragmentShaders();
@@ -507,12 +357,7 @@ void drawScene()
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	// 움직이고 나서 공책 채우기
-	if (moving != 0)
-	{
-		move();
-		recordTrail();   // 움직인 자리를 자취에 기록
-	}
+	// 공책 채우기
 	makeLine();
 	makevertax();
 
@@ -525,14 +370,13 @@ void drawScene()
 	glUseProgram(shaderProgramID);
 	glBindVertexArray(vao);
 
-	// 삼각형은 0번 줄부터 12줄
-	//glDrawArrays(GL_LINES, 0, 4);
-	glDrawArrays(GL_TRIANGLES, 0, 12);
-
-	// 삼각형마다 지나온 자취를 선으로 그리기
-	for (int i = 0; i < 4; ++i)
-		if (traillen[i] >= 2)
-			glDrawArrays(GL_LINE_STRIP, trailstart[i], traillen[i]);
+	// 십자선은 0번 줄부터 4줄을 선으로
+	glDrawArrays(GL_LINES, 0, 4);
+	// 삼각형 4개 (정점 4~15)
+	glDrawArrays(GL_TRIANGLES, 4, 12);
+	// 사각형 3개 (각 4정점을 TRIANGLE_STRIP으로, 정점 16~27)
+	for (int s = 0; s < 3; ++s)
+		glDrawArrays(GL_TRIANGLE_STRIP, 16 + s * 4, 4);
 
 }
 
@@ -546,25 +390,41 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		case GLFW_KEY_Q:
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
 			break;
-		case GLFW_KEY_1:
-			moving = 1;
+		case GLFW_KEY_A:
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);   // 면(속 채우기)
 			break;
-		case GLFW_KEY_2:
-			moving = 2;
+		case GLFW_KEY_B:
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);   // 선(테두리만)
 			break;
-		case GLFW_KEY_3:
-			moving = 3;
-			break;
-		case GLFW_KEY_4:
-			moving = 4;
+		case GLFW_KEY_C:
 			for (int i = 0; i < 4; ++i)
 			{
-				// 원점에서 현재 위치까지 거리 = 반지름
-				tri[i].radius = sqrtf(tri[i].x * tri[i].x + tri[i].y * tri[i].y);
-				// 현재 위치의 각도 = 시작 θ
-				tri[i].theta = atan2f(tri[i].y, tri[i].x);
+				if (i == 0)
+				{
+					tri[i].x = rand() / (float)RAND_MAX * 0.7f + 0.15f;
+					tri[i].y = rand() / (float)RAND_MAX * 0.7f + 0.15f;
+				}
+				else if (i == 1)
+				{
+					tri[i].x = rand() / (float)RAND_MAX * 0.7f - 0.85f;
+					tri[i].y = rand() / (float)RAND_MAX * 0.7f + 0.15f;
+				}
+				else if (i == 2)
+				{
+					tri[i].x = rand() / (float)RAND_MAX * 0.7f - 0.85f;
+					tri[i].y = rand() / (float)RAND_MAX * 0.7f - 0.85f;
+				}
+				else if (i == 3)
+				{
+					tri[i].x = rand() / (float)RAND_MAX * 0.7f + 0.15f;
+					tri[i].y = rand() / (float)RAND_MAX * 0.7f - 0.85f;
+				}
+				tri[i].size = 0.05f + rand() / (float)RAND_MAX * 0.1f;
+				tri[i].r = rand() / (float)RAND_MAX;
+				tri[i].g = rand() / (float)RAND_MAX;
+				tri[i].b = rand() / (float)RAND_MAX;
+
 			}
-			break;
 		}
 	}
 }
@@ -607,7 +467,37 @@ void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 		tri[mouseclik].b = rand() / (float)RAND_MAX;
 		tri[mouseclik].x = lastx;
 		tri[mouseclik].y = lasty;
-		tri[mouseclik].dx = randomSpeed();
-		tri[mouseclik].dy = randomSpeed();
+
+	}
+	else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+	{
+		double x, y;
+		glfwGetCursorPos(window, &x, &y);
+		// 화면 픽셀 -> GL 좌표
+		float gx = (float)(x / width * 2.0 - 1.0);
+		float gy = (float)(1.0 - y / height * 2.0);
+		rightx = gx;
+		righty = gy;
+		if (gx >= -1.0f && gx <= 0.0f && gy >= 0.0f && gy <= 1.0f)
+		{
+			rightclick = 1;
+			std::cout << "1click" << std::endl;
+		}
+		else if (gx <= 1.0f && gx >= 0.0f && gy >= 0.0f && gy <= 1.0f)
+		{
+			rightclick = 0;
+			std::cout << "0click" << std::endl;
+		}
+		else if (gx >= -1.0f && gx <= 0.0f && gy <= 0.0f && gy >= -1.0f)
+		{
+			rightclick = 2;
+			std::cout << "2click" << std::endl;
+		}
+		else if (gx <= 1.0f && gx >= 0.0f && gy <= 0.0f && gy >= -1.0f)
+		{
+			rightclick = 3;
+			std::cout << "3click" << std::endl;
+		}
+		tri[rightclick].size = 0.05f + rand() / (float)RAND_MAX * 0.1f;
 	}
 }
