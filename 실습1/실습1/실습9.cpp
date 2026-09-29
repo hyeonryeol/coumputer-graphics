@@ -302,12 +302,12 @@ void move()
 		
 		for (int i = 0; i < 4; ++i)
 		{
-			tri[i].theta += 0.05f;                  // 각도 → 회전
-			tri[i].radius += rdir[i] * 0.002f;       // 방향대로 반지름 증감
+			tri[i].theta += 0.05f;                  // 각도 회전
+			tri[i].radius += rdir[i] * 0.002f;       // 방향대로 반지름 
 
-			if (tri[i].radius >= 1.0f) rdir[i] = -1; // 최대 도달 → 줄이기 시작
-			if (tri[i].radius <= 0.1f) rdir[i] = 1; // 최소 도달 → 다시 키우기
-
+			if (tri[i].radius >= 1.0f) rdir[i] = -1; // 최대 도달
+			if (tri[i].radius <= 0.1f) rdir[i] = 1; // 최소 도달 
+			 
 			tri[i].x = tri[i].radius * cosf(tri[i].theta);
 			tri[i].y = tri[i].radius * sinf(tri[i].theta);
 		}
@@ -315,7 +315,7 @@ void move()
 
 
 }
-// 지금 삼각형 중심 위치를 자취에 기록 (가득 차면 오래된 점부터 밀어냄)
+// 지금 삼각형 중심 위치를 자취에 기록 
 void recordTrail()
 {
 	for (int i = 0; i < 4; ++i)
@@ -559,9 +559,9 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 			moving = 4;
 			for (int i = 0; i < 4; ++i)
 			{
-				// 원점에서 현재 위치까지 거리 = 반지름
+				// 원점에서 현재 위치까지 거리 반지름
 				tri[i].radius = sqrtf(tri[i].x * tri[i].x + tri[i].y * tri[i].y);
-				// 현재 위치의 각도 = 시작 θ
+				// 현재 위치의 각도
 				tri[i].theta = atan2f(tri[i].y, tri[i].x);
 			}
 			break;
