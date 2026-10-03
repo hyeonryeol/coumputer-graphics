@@ -15,7 +15,6 @@ void InitBuffer();
 void drawScene();
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-
 // 필요한 변수
 GLint width = 800, height = 600;
 GLuint shaderProgramID;
@@ -31,8 +30,11 @@ struct Shape {
 	float r, g, b;
 	float size;
 	float x, y;
+	int col, row;
+	int type;
 };
-Shape shape[20];
+Shape shape[50];
+int shapecount = 0;
 void makeLine()
 {
 	// 가로선 왼쪽 끝, 오른쪽 끝, 세로선 아래 끝, 위 끝
@@ -50,7 +52,7 @@ void makeLine()
 		n++;
 	}
 
-	for (float boardy = -1.0f; boardy <= 1.0f; boardy += 0.1f) 
+	for (float boardy = -1.0f; boardy <= 1.0f; boardy += 0.1f)
 	{
 		position[n][0] = -1.0f;
 		position[n][1] = boardy;
@@ -62,43 +64,125 @@ void makeLine()
 		n++;
 	}
 }
+float cell = 0.1f;
+
 void makeshape(int idx)
 {
-	shape[idx].x = rand() / (float)RAND_MAX * 0.7f + 0.15f;
-	shape[idx].y = rand() / (float)RAND_MAX * 0.7f + 0.15f;
+	shape[idx].type = rand() % 3;
+	shape[idx].col = rand() % 20;
+	shape[idx].row = rand() % 20;
+
+	shape[idx].x = -1.0f + (shape[idx].col + 0.5f) * cell;
+	shape[idx].y = -1.0f + (shape[idx].row + 0.5f) * cell;
 	shape[idx].r = rand() / (float)RAND_MAX;
 	shape[idx].g = rand() / (float)RAND_MAX;
 	shape[idx].b = rand() / (float)RAND_MAX;
-	shape[idx].size = 0.0f + rand() / (float)RAND_MAX * 0.001f;
+	shape[idx].size = 0.02f + rand() / (float)RAND_MAX * 0.025f;
 }
 void makevertex()
 {
 	n = 85;
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < shapecount; ++i)
 	{
-		position[n][0] = shape[i].x - shape[i].size;;      // x
-		position[n][1] = shape[i].y - shape[i].size;;      // y
-		position[n][2] = 0.0f;      // z
+		if (shape[i].type == 0)
+		{
+			position[n][0] = shape[i].x - shape[i].size;;      // x
+			position[n][1] = shape[i].y - shape[i].size;;      // y
+			position[n][2] = 0.0f;      // z
 
-		position[n + 1][0] = shape[i].x + shape[i].size;
-		position[n + 1][1] = shape[i].y - shape[i].size;
-		position[n + 1][2] = 0.0f;
+			position[n + 1][0] = shape[i].x + shape[i].size;
+			position[n + 1][1] = shape[i].y - shape[i].size;
+			position[n + 1][2] = 0.0f;
 
-		position[n + 2][0] = shape[i].x;
-		position[n + 2][1] = shape[i].y + shape[i].size;
-		position[n + 2][2] = 0.0f;
+			position[n + 2][0] = shape[i].x;
+			position[n + 2][1] = shape[i].y + shape[i].size;
+			position[n + 2][2] = 0.0f;
 
-		color[n][0] = shape[i].r;         // r
-		color[n][1] = shape[i].g;         // g
-		color[n][2] = shape[i].b;         // b
-		color[n + 1][0] = shape[i].r;
-		color[n + 1][1] = shape[i].g;
-		color[n + 1][2] = shape[i].b;
-		color[n + 2][0] = shape[i].r;
-		color[n + 2][1] = shape[i].g;
-		color[n + 2][2] = shape[i].b;
-		n += 3;
+			color[n][0] = shape[i].r;         // r
+			color[n][1] = shape[i].g;         // g
+			color[n][2] = shape[i].b;         // b
+			color[n + 1][0] = shape[i].r;
+			color[n + 1][1] = shape[i].g;
+			color[n + 1][2] = shape[i].b;
+			color[n + 2][0] = shape[i].r;
+			color[n + 2][1] = shape[i].g;
+			color[n + 2][2] = shape[i].b;
+			n += 3;
+		}
+		else if (shape[i].type == 1)
+		{
+			position[n][0] = shape[i].x;
+			position[n][1] = shape[i].y - shape[i].size;
+			position[n][2] = 0.0f;
+			position[n + 1][0] = shape[i].x - shape[i].size;;      // x
+			position[n + 1][1] = shape[i].y + shape[i].size;;      // y
+			position[n + 1][2] = 0.0f;      // z
+
+			position[n + 2][0] = shape[i].x + shape[i].size;
+			position[n + 2][1] = shape[i].y + shape[i].size;
+			position[n + 2][2] = 0.0f;
+
+
+			color[n][0] = shape[i].r;         // r
+			color[n][1] = shape[i].g;         // g
+			color[n][2] = shape[i].b;         // b
+			color[n + 1][0] = shape[i].r;
+			color[n + 1][1] = shape[i].g;
+			color[n + 1][2] = shape[i].b;
+			color[n + 2][0] = shape[i].r;
+			color[n + 2][1] = shape[i].g;
+			color[n + 2][2] = shape[i].b;
+			n += 3;
+		}
+		else if (shape[i].type == 2)
+		{
+			position[n][0] = shape[i].x - shape[i].size;;
+			position[n][1] = shape[i].y + shape[i].size;
+			position[n][2] = 0.0f;
+
+			position[n + 1][0] = shape[i].x + shape[i].size;;
+			position[n + 1][1] = shape[i].y + shape[i].size;
+			position[n + 1][2] = 0.0f;
+
+			position[n + 2][0] = shape[i].x - shape[i].size;;      // x
+			position[n + 2][1] = shape[i].y - shape[i].size;;      // y
+			position[n + 2][2] = 0.0f;      // z
+
+			position[n + 3][0] = shape[i].x - shape[i].size;;      // x
+			position[n + 3][1] = shape[i].y - shape[i].size;;      // y
+			position[n + 3][2] = 0.0f;
+
+			position[n + 4][0] = shape[i].x + shape[i].size;
+			position[n + 4][1] = shape[i].y - shape[i].size;
+			position[n + 4][2] = 0.0f;
+
+			position[n + 5][0] = shape[i].x + shape[i].size;;
+			position[n + 5][1] = shape[i].y + shape[i].size;
+			position[n + 5][2] = 0.0f;
+			
+			color[n][0] = shape[i].r;         // r
+			color[n][1] = shape[i].g;         // g
+			color[n][2] = shape[i].b;         // b
+			color[n + 1][0] = shape[i].r;
+			color[n + 1][1] = shape[i].g;
+			color[n + 1][2] = shape[i].b;
+			color[n + 2][0] = shape[i].r;
+			color[n + 2][1] = shape[i].g;
+			color[n + 2][2] = shape[i].b;
+			color[n + 3][0] = shape[i].r;
+			color[n + 3][1] = shape[i].g;
+			color[n + 3][2] = shape[i].b;
+			color[n + 4][0] = shape[i].r;
+			color[n + 4][1] = shape[i].g;
+			color[n + 4][2] = shape[i].b;
+			color[n + 5][0] = shape[i].r;
+			color[n + 5][1] = shape[i].g;
+			color[n + 5][2] = shape[i].b;
+			
+			n += 6;
+		}
 	}
+
 
 }
 int main()
@@ -134,7 +218,9 @@ int main()
 
 	glViewport(0, 0, width, height);
 	srand((unsigned int)time(NULL));
-	makeshape(0);
+	shapecount = rand() % 20 + 5;
+	for (int i = 0; i < shapecount; ++i)
+		makeshape(i);
 	// 세이더 읽어서 세이더 프로그램 만들기
 	make_vertexShaders();
 	make_fragmentShaders();
@@ -278,7 +364,7 @@ void drawScene()
 	glUseProgram(shaderProgramID);
 	glBindVertexArray(vao);
 	glDrawArrays(GL_LINES, 0, 84);
-	glDrawArrays(GL_TRIANGLES, 85, 12);
+	glDrawArrays(GL_TRIANGLES, 85, n - 85);
 }
 
 // 키보드 콜백
