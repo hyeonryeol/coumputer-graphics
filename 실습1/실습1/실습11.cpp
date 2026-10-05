@@ -21,7 +21,17 @@ GLuint shaderProgramID;
 GLuint vertexShader;
 GLuint fragmentShader;
 GLuint vao, vbo[2];
-
+bool move = false;
+int dx = 1;    // 가로 방향 1 오른쪽 -1 왼쪽
+int dy = -1;   // 세로 방향 -1 아래 1 위
+float speed = 0.2f;   // 한 칸 가는 시간 초
+double lasttime = 0.0;
+// 충돌 효과
+bool hit = false;
+double hittime = 0.0;      // 부딪힌 시각
+float hitx, hity;          // 부딪힌 칸 중심
+float effecttime = 0.5f;   // 효과 보이는 시간 초
+int effectstart = 0;       // 공책에서 효과 시작 줄
 // 꼭짓점 공책
 GLfloat position[300][3];
 GLfloat color[300][3];
@@ -65,7 +75,18 @@ void makeLine()
 	}
 }
 float cell = 0.1f;
-
+void makeplayer()
+{
+	shape[0].type = 2;
+	shape[0].col = 0;
+	shape[0].row = 19;
+	shape[0].x = -1.0f + (shape[0].col + 0.5f) * cell;
+	shape[0].y = -1.0f + (shape[0].row + 0.5f) * cell;
+	shape[0].r = rand() / (float)RAND_MAX;
+	shape[0].g = rand() / (float)RAND_MAX;
+	shape[0].b = rand() / (float)RAND_MAX;
+	shape[0].size = 0.02f;
+}
 void makeshape(int idx)
 {
 	shape[idx].type = rand() % 3;
@@ -79,12 +100,127 @@ void makeshape(int idx)
 	shape[idx].b = rand() / (float)RAND_MAX;
 	shape[idx].size = 0.02f + rand() / (float)RAND_MAX * 0.025f;
 }
+// 충돌 검사
+void checkhit()
+{
+	for (int i = 1; i < shapecount; ++i)
+	{
+		if (shape[0].col == shape[i].col && shape[0].row == shape[i].row)
+		{
+			std::cerr << "충돌" << std::endl;
+
+			// 모양 교환
+			int t = shape[0].type;
+			shape[0].type = shape[i].type;
+			shape[i].type = t;
+
+			// 색 교환
+			float r = shape[0].r, g = shape[0].g, b = shape[0].b;
+			shape[0].r = shape[i].r;
+			shape[0].g = shape[i].g;
+			shape[0].b = shape[i].b;
+			shape[i].r = r;
+			shape[i].g = g;
+			shape[i].b = b;
+
+			// 효과 시작
+			hit = true;
+			hittime = glfwGetTime();
+			hitx = shape[0].x;
+			hity = shape[0].y;
+			break;
+		}
+	}
+}
+// 충돌 효과 빨간 사각형
+void makeeffect()
+{
+	effectstart = n;
+	if (hit == false)
+		return;
+
+	// 시간 지나면 없어짐
+	if (glfwGetTime() - hittime > effecttime)
+	{
+		hit = false;
+		return;
+	}
+
+	float s = 0.05f;   // 칸 반 크기
+
+	// 삼각형 1 왼위 오른위 왼아래
+	position[n][0] = hitx - s;
+	position[n][1] = hity + s;
+	position[n][2] = 0.0f;
+	position[n + 1][0] = hitx + s;
+	position[n + 1][1] = hity + s;
+	position[n + 1][2] = 0.0f;
+	position[n + 2][0] = hitx - s;
+	position[n + 2][1] = hity - s;
+	position[n + 2][2] = 0.0f;
+
+	// 삼각형 2 왼아래 오른아래 오른위
+	position[n + 3][0] = hitx - s;
+	position[n + 3][1] = hity - s;
+	position[n + 3][2] = 0.0f;
+	position[n + 4][0] = hitx + s;
+	position[n + 4][1] = hity - s;
+	position[n + 4][2] = 0.0f;
+	position[n + 5][0] = hitx + s;
+	position[n + 5][1] = hity + s;
+	position[n + 5][2] = 0.0f;
+
+	// 빨강
+	for (int j = 0; j < 6; ++j)
+	{
+		color[n + j][0] = 1.0f;
+		color[n + j][1] = 0.0f;
+		color[n + j][2] = 0.0f;
+	}
+	n += 6;
+}
+// 지그재그 한 칸
+void moving()
+{
+	if (move == false)
+		return;
+
+	// 속도 조절
+	double now = glfwGetTime();
+	if (now - lasttime < speed)
+		return;
+	lasttime = now;
+
+	int nextcol = shape[0].col + dx;
+	if (nextcol >= 0 && nextcol <= 19)
+	{
+		// 옆 칸으로
+		shape[0].col = nextcol;
+	}
+	else
+	{
+		// 줄 끝이면 한 줄 내려가고 방향 반대
+		int nextrow = shape[0].row + dy;
+		if (nextrow < 0 || nextrow > 19)
+		{
+			// 판 끝이면 위아래 반대
+			dy = -dy;
+			nextrow = shape[0].row + dy;
+		}
+		shape[0].row = nextrow;
+		dx = -dx;
+	}
+
+	shape[0].x = -1.0f + (shape[0].col + 0.5f) * cell;
+	shape[0].y = -1.0f + (shape[0].row + 0.5f) * cell;
+	checkhit();
+}
 void makevertex()
 {
 	n = 85;
 	for (int i = 0; i < shapecount; ++i)
 	{
-		if (shape[i].type == 0)
+		if (shape[i].type == 0) //삼각형
 		{
 			position[n][0] = shape[i].x - shape[i].size;;      // x
 			position[n][1] = shape[i].y - shape[i].size;;      // y
@@ -109,7 +245,7 @@ void makevertex()
 			color[n + 2][2] = shape[i].b;
 			n += 3;
 		}
-		else if (shape[i].type == 1)
+		else if (shape[i].type == 1) // 역삼각형
 		{
 			position[n][0] = shape[i].x;
 			position[n][1] = shape[i].y - shape[i].size;
@@ -134,7 +270,7 @@ void makevertex()
 			color[n + 2][2] = shape[i].b;
 			n += 3;
 		}
-		else if (shape[i].type == 2)
+		else if (shape[i].type == 2) //사각형
 		{
 			position[n][0] = shape[i].x - shape[i].size;;
 			position[n][1] = shape[i].y + shape[i].size;
@@ -159,7 +295,7 @@ void makevertex()
 			position[n + 5][0] = shape[i].x + shape[i].size;;
 			position[n + 5][1] = shape[i].y + shape[i].size;
 			position[n + 5][2] = 0.0f;
-			
+
 			color[n][0] = shape[i].r;         // r
 			color[n][1] = shape[i].g;         // g
 			color[n][2] = shape[i].b;         // b
@@ -178,7 +314,7 @@ void makevertex()
 			color[n + 5][0] = shape[i].r;
 			color[n + 5][1] = shape[i].g;
 			color[n + 5][2] = shape[i].b;
-			
+
 			n += 6;
 		}
 	}
@@ -218,9 +354,13 @@ int main()
 
 	glViewport(0, 0, width, height);
 	srand((unsigned int)time(NULL));
-	shapecount = rand() % 20 + 5;
+	shapecount = rand() % 30 + 20;
 	for (int i = 0; i < shapecount; ++i)
+	{
 		makeshape(i);
+	}
+	makeplayer();
+
 	// 세이더 읽어서 세이더 프로그램 만들기
 	make_vertexShaders();
 	make_fragmentShaders();
@@ -353,8 +493,10 @@ void drawScene()
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	// 여기서 공책 채우기
+	moving();
 	makeLine();
 	makevertex();
+	makeeffect();
 	// 공책을 창고에 올리기
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(position), position);
@@ -364,7 +506,9 @@ void drawScene()
 	glUseProgram(shaderProgramID);
 	glBindVertexArray(vao);
 	glDrawArrays(GL_LINES, 0, 84);
-	glDrawArrays(GL_TRIANGLES, 85, n - 85);
+	glDrawArrays(GL_TRIANGLES, effectstart, n - effectstart);   // 빨간 칸 먼저
+	glDrawArrays(GL_TRIANGLES, 85, effectstart - 85);           // 도형은 그 위에
+
 }
 
 // 키보드 콜백
@@ -377,6 +521,21 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		case GLFW_KEY_Q:
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
 			break;
+		case GLFW_KEY_M:
+			move = !move;
+			break;
+		case GLFW_KEY_EQUAL:   // 빠르게
+			if (speed > 0.06f)
+				speed -= 0.05f;
+
+			break;
+		case GLFW_KEY_MINUS:   // 느리게
+			if (speed < 0.96f)
+				speed += 0.05f;
+
+			break;
+
+
 		}
 	}
 }
