@@ -338,8 +338,8 @@ void hitcheck()
 	}
 	else
 	{
-		std::cout << "아직 안 맞음" << std::endl;
-	}
+		std::cout << "안 맞음" << std::endl;
+	} 
 }
 int main()
 {
