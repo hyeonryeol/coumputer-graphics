@@ -1,4 +1,4 @@
-#include <GL/glew.h>
+﻿#include <GL/glew.h>
 #include <GL/glfw3.h>
 #include <iostream>
 #include <fstream>
@@ -81,7 +81,7 @@ void makepair()
 // 쌓일 자리로 한 걸음
 void flying(int i)
 {
-	float step = 0.005f;
+	float step = 0.001f;
 	float ddx = shape[i].tx - shape[i].x;
 	float ddy = shape[i].ty - shape[i].y;
 	float dist = sqrt(ddx * ddx + ddy * ddy);
@@ -110,7 +110,7 @@ void moving()
 
 		if (shape[i].y <= 0.75f && shape[i].dir == 0)
 		{
-			shape[i].y += 0.001f;
+			shape[i].y += 0.0005f;
 			if (shape[i].y + shape[i].h >= 0.75f)
 			{
 				shape[i].dir = 1;
@@ -118,7 +118,7 @@ void moving()
 		}
 		else if (shape[i].y >= -0.75f && shape[i].dir == 1)
 		{
-			shape[i].y -= 0.001f;
+			shape[i].y -= 0.0005f;
 			if (shape[i].y - shape[i].h <= -0.75f)
 			{
 				shape[i].dir = 0;
@@ -131,7 +131,7 @@ void moving()
 	{
 		if (shapecount + 2 > 48)
 		{
-			std::cout << "탑 다 참 r로 리셋" << std::endl;
+			std::cout << "가득 참" << std::endl;
 			shape[shapecount - 1].state = 3;   // 한 번만 출력
 		}
 		else
