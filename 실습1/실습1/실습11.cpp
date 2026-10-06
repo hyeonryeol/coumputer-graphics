@@ -87,10 +87,10 @@ void makeplayer()
 	shape[0].b = rand() / (float)RAND_MAX;
 	shape[0].size = 0.02f;
 }
-// (c, r) 칸이 이미 쓰였는지 (플레이어 칸 + 먼저 놓인 도형들)
+
 bool taken(int idx, int c, int r)
 {
-	if (c == 0 && r == 19) return true;   // 플레이어 칸 예약
+	if (c == 0 && r == 19) return true;   // 플레이어 칸 
 	for (int i = 0; i < idx; ++i)
 		if (shape[i].col == c && shape[i].row == r) return true;
 	return false;
@@ -545,8 +545,9 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 				speed += 0.05f;
 
 			break;
-
-
+		case GLFW_KEY_S:
+			move= false;
+			break;
 		}
 	}
 }
