@@ -57,12 +57,24 @@
     <ClCompile Include="실습12.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="실습13.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="실습14.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="실습15.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="vertex.glsl">
       <Filter>소스 파일</Filter>
     </None>
     <None Include="fragment.glsl">
+      <Filter>소스 파일</Filter>
+    </None>
+    <None Include="vertex13.glsl">
       <Filter>소스 파일</Filter>
     </None>
   </ItemGroup>
