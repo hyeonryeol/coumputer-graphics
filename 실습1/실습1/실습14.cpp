@@ -195,6 +195,7 @@ int main()
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
+	glfwSwapInterval(1);   // 모니터 주사율에 맞춰 속도 고정
 
 	// GLEW 초기화
 	glewExperimental = GL_TRUE;
@@ -347,8 +348,8 @@ void drawScene()
 	makeline();
 	makecube();
 	makepy();
-	anglex += 1.0f * spinx;
-	angley += 1.0f * spiny;
+	anglex += 2.0f * spinx;
+	angley += 2.0f * spiny;
 	// 공책을 창고에 올리기
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(position), position);

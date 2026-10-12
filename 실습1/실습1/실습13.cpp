@@ -188,6 +188,7 @@ int main()
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
+	glfwSwapInterval(1);   // 모니터 주사율에 맞춰 속도 고정
 
 	// GLEW 초기화
 	glewExperimental = GL_TRUE;

@@ -229,6 +229,7 @@ int main()
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
+	glfwSwapInterval(1);   // 모니터 주사율에 맞춰 속도 고정
 
 	// GLEW 초기화
 	glewExperimental = GL_TRUE;
@@ -381,29 +382,29 @@ void drawScene()
 	makeline();
 	makecube();
 	makepy();
-	anglex += 1.0f * spinx;
-	angley += 1.0f * spiny;
+	anglex += 2.0f * spinx;
+	angley += 2.0f * spiny;
 	if (topspin == true)
-		topangle += 1.0f;
+		topangle += 2.0f;
 	if (frontspin == true)
 	{
 		if (frontdir == 1)
 		{
-			frontangle -= 1.0f;
+			frontangle -= 2.0f;
 			if (frontangle == -90.0f)
 				frontdir = 0;
 		}
 		else if (frontdir == -1)
 		{
-			frontangle += 1.0f;
+			frontangle += 2.0f;
 			if (frontangle == 0.0f)
 				frontdir = 0;
 		}
 	}
 	if (sidespin == true)
-		sideangle += 1.0f;
+		sideangle += 2.0f;
 
-	backsize += 0.01f * backdir;
+	backsize += 0.02f * backdir;
 	if (backsize <= 0.0f)
 	{
 		backdir = 0;
@@ -416,7 +417,7 @@ void drawScene()
 	}
 	if (pairspin == true)
 	{
-		pairangle += 1.0f;
+		pairangle += 2.0f;
 		if (pairangle == 360.0f)
 		{
 			pairangle = 0.0f;
@@ -425,7 +426,7 @@ void drawScene()
 	}
 	if (swapspin == true)
 	{
-		swapangle += 1.0f;
+		swapangle += 2.0f;
 		if (swapangle >= 90.0f)
 		{
 			
@@ -437,11 +438,11 @@ void drawScene()
 	}
 	if (gongjeon == true)
 	{
-		gongjeonangle += 1.0f;
+		gongjeonangle += 2.0f;
 	}
 	if (topgongjeon == true)
 	{
-		topgongjeonangle += 1.0f;
+		topgongjeonangle += 2.0f;
 	}
 		
 	// 공책을 창고에 올리기
@@ -722,6 +723,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 			backsize = 1.0f;
 			backdir = 0;
 			pairspin = false;
+			pairangle = 0.0f;
 			swapangle = 0.0f;
 			swapspin = false;
 			gongjeon = false;
