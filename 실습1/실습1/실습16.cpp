@@ -73,6 +73,16 @@ float topgongjeonangle = 0.0f;
 bool pyspin = false;
 float pyopenangle = 0.0f;
 int pyopendir = -1;
+bool sevenpress = false;
+float sevenangle[4] = {};
+int seven = 0;
+int sevendir = -1;
+bool pygongjeon = false;
+float pygongjeonangle = 0.0f;
+int gongjeondir = -1;
+bool pyspin2 = false;
+float pyopenangle2 = 0.0f;
+int pyopendir2 = -1;
 void makeline()
 {
 	n = 0;
@@ -448,12 +458,64 @@ void drawScene()
 	}
 	if (pyspin == true)
 	{
-		if(pyopenangle <180.0f && pyopendir == 1)
-			pyopenangle += 2.0f;
-		else if(pyopendir == -1)
+		if (pyopenangle < 233.0f && pyopendir == 1)
+			pyopenangle += 1.0f;
+		else if (pyopendir == -1)
 		{
-			if(pyopenangle >0.0f)
-				pyopenangle -= 2.0f;
+			if (pyopenangle > 0.0f)
+				pyopenangle -= 1.0f;
+		}
+	}
+	if (sevenpress == true)
+	{
+		if (sevendir == 1)              
+		{		if (seven < 4)
+			{
+				sevenangle[seven] += 1.0f;
+				if (sevenangle[seven] > 130.0f)
+				{
+					sevenangle[seven] = 130.0f;
+					seven += 1;          
+				}
+			}
+		}
+		else                          
+		{
+			for (int k = 3; k >= 0; --k)
+			{
+				if (sevenangle[k] > 0.0f)
+				{
+					sevenangle[k] -= 1.0f;
+					if (sevenangle[k] < 0.0f) sevenangle[k] = 0.0f;
+					seven = k;           
+					break;              
+				}
+			}
+		}
+	}
+	if (pygongjeon == true)
+	{
+		if (pygongjeonangle < 180.0f && gongjeondir == 1)
+		{
+			pygongjeonangle += 1.0f;
+			
+				
+		}
+		else if(pygongjeonangle > 0.0f && gongjeondir ==-1)
+		{
+			pygongjeonangle -= 1.0f;
+			
+				
+		}
+	}
+	if (pyspin2 == true)
+	{
+		if (pyopenangle2 < 90.0f && pyopendir2 == 1)
+			pyopenangle2 += 1.0f;
+		else if (pyopendir2 == -1)
+		{
+			if (pyopenangle2 > 0.0f)
+				pyopenangle2 -= 1.0f;
 		}
 	}
 	// 공책을 창고에 올리기
@@ -600,6 +662,7 @@ void drawScene()
 		{
 			spin = glm::rotate(spin, glm::radians(topgongjeonangle), glm::vec3(1.0f, 0.0f, 0.0f));
 		}
+
 		face = glm::rotate(face, glm::radians(faceangle[k]), axis);
 		glm::mat4 total = objmodel * face;
 
@@ -651,7 +714,68 @@ void drawScene()
 			spin = glm::rotate(spin, glm::radians(pyopenangle), glm::vec3(0.0f, 0.0f, 1.0f));
 			spin = glm::translate(spin, glm::vec3(0.3f, 0.3f, 0.0f));
 		}
-		glm::mat4 total = objmodel *spin* face;     // 면 회전 먼저, 기울이기 나중
+		if (k == 0)
+		{
+			spin = glm::translate(spin, glm::vec3(0.0f, -0.3f, 0.3f));
+			spin = glm::rotate(spin, glm::radians(sevenangle[k]), glm::vec3(1.0f, 0.0f, 0.0f));
+			spin = glm::translate(spin, glm::vec3(0.0f, 0.3f, -0.3f));
+
+		}
+		if (k == 1)
+		{
+			spin = glm::translate(spin, glm::vec3(0.3f, -0.3f, 0.0f));
+			spin = glm::rotate(spin, glm::radians(sevenangle[k]), glm::vec3(0.0f, 0.0f, -1.0f));
+			spin = glm::translate(spin, glm::vec3(-0.3f, 0.3f, 0.0f));
+
+		}
+		if (k == 2)
+		{
+			spin = glm::translate(spin, glm::vec3(0.0f, -0.3f, -0.3f));
+			spin = glm::rotate(spin, glm::radians(sevenangle[k]), glm::vec3(-1.0f, 0.0f, 0.0f));
+			spin = glm::translate(spin, glm::vec3(0.0f, 0.3f, 0.3f));
+
+		}
+		if (k == 3)
+		{
+			spin = glm::translate(spin, glm::vec3(-0.3f, -0.3f, 0.0f));
+			spin = glm::rotate(spin, glm::radians(sevenangle[k]), glm::vec3(0.0f, 0.0f, 1.0f));
+			spin = glm::translate(spin, glm::vec3(0.3f, 0.3f, 0.0f));
+
+		}
+		if (k == 0)
+		{
+			spin = glm::rotate(spin, glm::radians(pygongjeonangle), glm::vec3(0.0f, 1.0f, 0.0f));
+		}
+		
+		if (k == 2)
+		{
+			spin = glm::rotate(spin, glm::radians(pygongjeonangle), glm::vec3(0.0f, 1.0f, 0.0f));
+		}
+		if (k == 0)
+		{
+			spin = glm::translate(spin, glm::vec3(0.0f, 0.3f, 0.0f));
+			spin = glm::rotate(spin, glm::radians(pyopenangle2), glm::vec3(-1.0f, 0.0f, 0.0f));
+			spin = glm::translate(spin, glm::vec3(0.0f, -0.3f, 0.0f));
+		}
+		if (k == 1)
+		{
+			spin = glm::translate(spin, glm::vec3(0.0f, 0.3f, 0.0f));
+			spin = glm::rotate(spin, glm::radians(pyopenangle2), glm::vec3(0.0f, 0.0f, 1.0f));
+			spin = glm::translate(spin, glm::vec3(0.0f, -0.3f, 0.0f));
+		}
+		if (k == 2)
+		{
+			spin = glm::translate(spin, glm::vec3(0.0f, 0.3f, 0.0f));
+			spin = glm::rotate(spin, glm::radians(pyopenangle2), glm::vec3(1.0f, 0.0f, 0.0f));
+			spin = glm::translate(spin, glm::vec3(0.0f, -0.3f, 0.0f));
+		}
+		if (k == 3)
+		{
+			spin = glm::translate(spin, glm::vec3(0.0f, 0.3f, 0.0f));
+			spin = glm::rotate(spin, glm::radians(pyopenangle2), glm::vec3(0.0f, 0.0f, -1.0f));
+			spin = glm::translate(spin, glm::vec3(0.0f, -0.3f, 0.0f));
+		}
+		glm::mat4 total = objmodel * spin * face;     // 면 회전 먼저, 기울이기 나중
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(total));
 		glDrawArrays(GL_TRIANGLES, 42 + k * 3, 3);
 	}
@@ -836,6 +960,18 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		case GLFW_KEY_6:
 			pyspin = true;
 			pyopendir = -pyopendir;
+			break;
+		case GLFW_KEY_7:
+			sevenpress = true;
+			sevendir = -sevendir;
+			break;
+		case GLFW_KEY_8:
+			pygongjeon = true;
+			gongjeondir = -gongjeondir;
+			break;
+		case GLFW_KEY_9:
+			pyspin2 = true;
+			pyopendir2 = -pyopendir2;
 			break;
 
 		}
