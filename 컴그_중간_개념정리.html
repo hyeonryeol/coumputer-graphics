@@ -1,0 +1,1272 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>컴퓨터그래픽스 중간 개념정리</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* 레이아웃 범위 PDF 순서대로 읽는 단일 열 노트 위 고정 칩 노란 칸 핵심 주황 칸 함정 */
+:root{
+  --bg:#F2F4F8; --paper:#FFFFFF; --ink:#18202E; --muted:#5A6478; --line:#D7DCE6;
+  --accent:#2B5FAE; --accent-soft:#E3ECFA; --key:#FFF1B3; --key-ink:#4A3A00; --warn:#9A4A12; --warn-soft:#FCEFE2;
+  --hot:#C62828; --hot-soft:#FDECEC; --code-bg:#151B27; --code-ink:#E4EAF5; --chip:#E7EBF2; --ok:#2F7A3E;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10141C; --paper:#171D28; --ink:#E1E7F1; --muted:#98A3B8; --line:#273042;
+  --accent:#86AEF0; --accent-soft:#1B2840; --key:#4A3E10; --key-ink:#FFE9A0; --warn:#F2B06C; --warn-soft:#33261A;
+  --hot:#FF8A80; --hot-soft:#3A1E1E; --code-bg:#0A0E15; --code-ink:#DCE4F2; --chip:#1E2635; --ok:#7CCB8A; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#10141C; --paper:#171D28; --ink:#E1E7F1; --muted:#98A3B8; --line:#273042;
+  --accent:#86AEF0; --accent-soft:#1B2840; --key:#4A3E10; --key-ink:#FFE9A0; --warn:#F2B06C; --warn-soft:#33261A;
+  --hot:#FF8A80; --hot-soft:#3A1E1E; --code-bg:#0A0E15; --code-ink:#DCE4F2; --chip:#1E2635; --ok:#7CCB8A; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15.5px;line-height:1.75;margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 72px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:840px;margin:0 auto}
+header.top{padding-block:30px 6px}
+.eyebrow{font-size:12.5px;letter-spacing:.08em;color:var(--muted);font-weight:500}
+h1{font-size:28px;margin:4px 0 6px;text-wrap:balance}
+.lead{color:var(--muted);margin:0;max-width:66ch}
+nav.lec{position:sticky;top:env(safe-area-inset-top,0px);z-index:3;background:var(--bg);border-bottom:1px solid var(--line);
+  display:flex;gap:6px;overflow-x:auto;padding-block:10px;margin-top:14px}
+nav.lec a{flex:none;font-size:13px;text-decoration:none;color:var(--ink);background:var(--chip);border-radius:999px;padding:3px 11px;white-space:nowrap}
+nav.lec a:hover{background:var(--accent-soft);color:var(--accent)}
+nav.lec a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+section.ch{margin-top:38px;scroll-margin-top:60px}
+section.ch>h2{font-size:21px;margin:0 0 4px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;text-wrap:balance}
+section.ch>h2 .no{font-family:var(--f-mono);font-size:13.5px;color:var(--accent)}
+.chsub{color:var(--muted);font-size:14px;margin:0 0 12px}
+article{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-top:12px;min-width:0}
+article h3{font-size:16.5px;margin:0 0 8px}
+article h4{font-size:15px;margin:14px 0 4px;color:var(--accent)}
+.core{background:var(--key);color:var(--key-ink);border-radius:6px;padding:6px 10px;font-weight:600;margin:0 0 10px}
+.warn{background:var(--warn-soft);color:var(--warn);border-radius:6px;padding:6px 10px;margin:10px 0 0;font-size:14.5px}
+.note{color:var(--muted);font-size:13.5px;margin:8px 0 0}
+article p{margin:6px 0}
+ul,ol{margin:6px 0;padding-left:22px}
+li{margin:3px 0}
+code{font-family:var(--f-mono);font-size:.87em;background:var(--chip);border-radius:4px;padding:1px 5px}
+pre{font-family:var(--f-mono);font-size:13px;line-height:1.55;background:var(--code-bg);color:var(--code-ink);border-radius:8px;padding:11px 13px;overflow-x:auto;margin:8px 0}
+pre code{background:none;padding:0;color:inherit}
+.tbl{overflow-x:auto;margin:8px 0}
+table{border-collapse:collapse;font-size:14px}
+th,td{border:1px solid var(--line);padding:5px 9px;text-align:left;vertical-align:top}
+th{background:var(--accent-soft);font-weight:600;white-space:nowrap}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0;font-size:14px}
+.flow span{background:var(--accent-soft);color:var(--accent);border-radius:6px;padding:2px 9px;font-weight:600}
+.flow i{font-style:normal;color:var(--muted)}
+.calc{border-left:3px solid var(--accent);padding:4px 0 4px 12px;margin:10px 0;font-variant-numeric:tabular-nums}
+.calc b{color:var(--accent)}
+.grid9{border-collapse:collapse;margin:8px 0;font-family:var(--f-mono);font-size:14px}
+.grid9 td{width:76px;height:44px;text-align:center;vertical-align:middle}
+.grid9 td.in{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.qz details{border:1px solid var(--line);border-radius:6px;padding:5px 10px;margin:5px 0}
+.qz summary{cursor:pointer;font-size:14.5px}
+.qz summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.qz details p{margin:6px 0 2px;color:var(--ok);font-weight:600}
+article.hot{border:2px solid var(--hot)}
+.hottag{display:inline-block;font-size:12px;font-weight:700;color:var(--hot);background:var(--hot-soft);border-radius:999px;padding:0 8px;margin-left:6px;vertical-align:2px}
+article[id]{scroll-margin-top:60px}
+nav.lec a.hotchip{background:var(--hot-soft);color:var(--hot);font-weight:700}
+body.hidecode pre.code{display:none}
+.codebtn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:3px 12px;cursor:pointer;margin-top:8px}
+.codebtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:8px 0}
+.figs figure{margin:0;min-width:0}
+.figs figcaption{font-size:13.5px;color:var(--muted);margin-top:4px}
+svg.rule{width:100%;max-width:320px;background:var(--chip);border-radius:8px}
+svg.rule .shape{fill:var(--accent);fill-opacity:.35;stroke:none}
+svg.rule .edge{fill:none;stroke:var(--ink);stroke-width:1.5}
+svg.rule .dir{stroke:var(--muted);stroke-width:2.5}
+svg.rule .ah{fill:var(--muted)}
+svg.rule .ray{stroke:var(--hot);stroke-width:1.5;stroke-dasharray:4 3}
+svg.rule .hit{fill:var(--hot)}
+svg.rule .pt{fill:var(--ink)}
+svg.rule text{fill:var(--hot);font-size:11px;font-weight:700;font-family:var(--f-body)}
+.meq{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;font-family:var(--f-mono);font-size:13px;margin:4px 0}
+.mat{display:inline-grid;grid-template-columns:repeat(var(--c),auto);gap:1px 10px;padding:3px 8px;border-left:2px solid var(--ink);border-right:2px solid var(--ink);border-radius:7px;font-family:var(--f-mono);font-size:13px;text-align:center;vertical-align:middle;white-space:nowrap}
+@media (max-width:480px){h1{font-size:23px}article{padding:14px}}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">2026-2 · 컴퓨터그래픽스 · 중간고사 범위</div>
+  <h1>컴퓨터그래픽스 중간 개념정리</h1>
+  <p class="lead">범위 PDF를 순서대로 정리했어요. 지엘1, 지엘2 GLSL 1·2, 지엘3 좌표계 변환 1·2, 4 윈도우와 뷰포트, 5 조명모델, 그리고 시험에 나온 1~3장 기본요소와 2D 변환. 빨간 테두리는 중간고사에 나온 곳, 노란 칸은 핵심 한 줄, 주황 칸은 헷갈리기 쉬운 곳이에요. 코드는 슬라이드 예제를 옮겼고, 계산 예제 답은 직접 풀어서 검산한 값이에요.</p>
+  <p class="lead"><b>시험은 코드 없이 이론과 계산만</b> 나온대요. OpenGL 코드 블록은 기본으로 숨겨 뒀어요. <button class="codebtn" id="codebtn" type="button">코드 보이기</button></p>
+</header>
+
+<nav class="lec" aria-label="단원 이동">
+  <a class="hotchip" href="#exam">★ 출제</a><a href="#basic">1~2장 기본요소</a><a href="#tr2d">3장 2D 변환</a><a href="#gl1">지엘1 OpenGL·GLFW</a><a href="#glsl">지엘2 GLSL</a><a href="#vbo">지엘2 VBO·VAO·EBO</a><a href="#model">지엘3 모델링 변환</a><a href="#view">지엘3 뷰·투영·뷰포트</a><a href="#clip">4 윈도우·클리핑</a><a href="#light">5 조명·쉐이딩</a><a href="#check">시험 체크</a>
+</nav>
+
+<!-- 출제 -->
+<section class="ch" id="exam">
+  <h2><span class="no">★ 출제</span>중간고사에 나왔다는 것</h2>
+  <p class="chsub">아래 항목은 본문에서 빨간 테두리와 <span class="hottag">출제</span> 표시로 강조했어요. 누르면 해당 칸으로 가요</p>
+  <article class="hot">
+    <div class="tbl"><table>
+      <tr><th>나온 것</th><th>바로 가기</th></tr>
+      <tr><td>벡터 그래픽스, 래스터 그래픽스</td><td><a href="#h-vecras">1장 벡터와 래스터</a></td></tr>
+      <tr><td>DDA 알고리즘</td><td><a href="#h-dda">2장 DDA</a></td></tr>
+      <tr><td>브레즌햄 선, 원</td><td><a href="#h-bline">브레즌햄 선</a> · <a href="#h-bcircle">브레즌햄 원</a></td></tr>
+      <tr><td>다각형 내부 판단 규칙</td><td><a href="#h-inside">홀짝 규칙, 접기 횟수 규칙</a></td></tr>
+      <tr><td>안티앨리어싱 원인과 방법</td><td><a href="#h-aa">앨리어싱, 안티앨리어싱</a></td></tr>
+      <tr><td>도형 변환 순서, 반사(무조건), 밀림, 한 문제에 다 섞여 나옴</td><td><a href="#h-order">합성 변환 순서</a> · <a href="#h-reflect">반사</a> · <a href="#h-shear">밀림</a></td></tr>
+      <tr><td>뷰포트 계산</td><td><a href="#h-wv">윈도우 뷰포트 변환</a></td></tr>
+      <tr><td>클리핑</td><td><a href="#h-cs">Cohen-Sutherland</a> · <a href="#h-lb">Liang-Barsky</a></td></tr>
+      <tr><td>다각형 알고리즘</td><td><a href="#h-poly">Sutherland-Hodgman, Weiler-Atherton</a> · <a href="#h-fill">다각형 채우기</a></td></tr>
+      <tr><td>광원에서 물체의 색과 밝기 특성</td><td><a href="#h-light">조명 모델 영향 요소</a></td></tr>
+    </table></div>
+    <p class="note">메모의 "외일러"는 Weiler-Atherton 다각형 클리핑으로 보고 다각형 알고리즘 칸에 연결했어요. "다각형 알고리즘"이 채우기(y-x 주사선) 쪽일 수도 있어서 둘 다 걸어 뒀어요.</p>
+  </article>
+</section>
+
+<!-- 1~2장 기본요소 -->
+<section class="ch" id="basic">
+  <h2><span class="no">1~2장</span>벡터와 래스터, 선 원 그리기, 채우기, 안티앨리어싱</h2>
+  <p class="chsub">처음엔 범위 밖으로 알았던 1, 2장인데 시험에 나와서 추가했어요</p>
+
+  <article class="hot" id="h-vecras">
+    <h3>벡터 그래픽스와 래스터 그래픽스 <span class="hottag">출제</span></h3>
+    <div class="tbl"><table>
+      <tr><th></th><th>벡터 그래픽스</th><th>래스터 그래픽스</th></tr>
+      <tr><td>표현</td><td>점, 선, 곡선, 도형을 <b>수학식</b>(기하 정보)으로</td><td>이미지를 <b>픽셀 배열</b>로</td></tr>
+      <tr><td>파일 크기</td><td>작음</td><td>큼</td></tr>
+      <tr><td>확대</td><td>화질 변화 없음</td><td>픽셀이 드러나 화질 떨어짐</td></tr>
+      <tr><td>해상도</td><td>상관없음</td><td>정해져 있음</td></tr>
+      <tr><td>예</td><td>SVG, 그리기 소프트웨어</td><td>사진, 게임 화면, 대부분의 모니터</td></tr>
+    </table></div>
+    <p>래스터 스캔 방식: 픽셀 단위로 스캔 라인을 따라 한 줄씩 출력, 프레임 버퍼에 저장 후 주기적으로 재생. 이중 프레임 버퍼 사용. 메모리를 많이 쓰고 선에 <b>계단 현상</b>이 생길 수 있음.</p>
+  </article>
+
+  <article>
+    <h3>점과 선</h3>
+    <ul>
+      <li>점: 래스터 장치에서는 픽셀, 기하 공간에서는 좌표 (x, y). 속성은 크기, 명암, 색, 모양.</li>
+      <li>선: 양 끝점으로 정의. 절대좌표(시작점, 끝점) 또는 상대좌표(시작점, 증가값 Δx Δy).</li>
+      <li>직선 y = mx + c, m = (y2 − y1)/(x2 − x1), c = y1 − m·x1.</li>
+    </ul>
+  </article>
+
+  <article class="hot" id="h-dda">
+    <h3>DDA 알고리즘 <span class="hottag">출제</span></h3>
+    <p class="core">x 또는 y를 1씩 늘리면서 다른 좌표에 기울기만큼 더하고, 그 값을 <b>반올림</b>해 픽셀을 정한다</p>
+    <div class="tbl"><table>
+      <tr><th>기울기</th><th>한 칸씩 늘리는 쪽</th><th>다음 픽셀</th></tr>
+      <tr><td>|m| ≤ 1</td><td>x</td><td>(x<sub>k</sub> + 1, round(y<sub>k</sub> + m))</td></tr>
+      <tr><td>|m| &gt; 1</td><td>y</td><td>(round(x<sub>k</sub> + 1/m), y<sub>k</sub> + 1)</td></tr>
+    </table></div>
+    <ul>
+      <li>초기화: Δx = x<sub>b</sub> − x<sub>a</sub>, Δy = y<sub>b</sub> − y<sub>a</sub>, m = Δy/Δx, 시작점 (x<sub>a</sub>, y<sub>a</sub>).</li>
+      <li>특징: 곱셈 없이 <b>실수 덧셈</b>만 반복. 하지만 부동소수 연산이라 정수 연산보다 느리고, 반올림 시간이 걸리며, <b>오차가 누적</b>될 수 있다.</li>
+    </ul>
+    <div class="calc">예) (0, 0)에서 (5, 3): m = 0.6 ≤ 1이라 x를 1씩<br>
+      y = 0, 0.6, 1.2, 1.8, 2.4, 3.0 → 반올림 0, 1, 1, 2, 2, 3<br>
+      픽셀 <b>(0,0) (1,1) (2,1) (3,2) (4,2) (5,3)</b></div>
+    <p class="note">이 숫자 예제는 연습용으로 만든 거예요.</p>
+  </article>
+
+  <article class="hot" id="h-bline">
+    <h3>브레즌햄 선 그리기 <span class="hottag">출제</span></h3>
+    <p class="core">0 ≤ m ≤ 1일 때 다음 점은 (x+1, y) 또는 (x+1, y+1) 둘 중 하나. 판단 매개변수 p의 부호로 고른다. <b>정수 덧셈만</b> 써서 빠르다</p>
+    <ul>
+      <li>d1 = 실제 y − y<sub>k</sub>, d2 = (y<sub>k</sub> + 1) − 실제 y. p<sub>k</sub> = Δx(d1 − d2).</li>
+      <li>초기값: <b>p<sub>1</sub> = 2Δy − Δx</b>, C1 = 2Δy, C2 = 2(Δy − Δx)</li>
+      <li><b>p &lt; 0</b> → d1 &lt; d2 → 다음 점 (x+1, y), p += C1</li>
+      <li><b>p ≥ 0</b> → 다음 점 (x+1, y+1), p += C2</li>
+      <li>나머지 기울기는 대칭성으로 처리. 응용: 선분 래스터화, 프린터 플로터, LED 매트릭스, 2D 게임 타일 경로와 시야 검사.</li>
+    </ul>
+    <div class="calc">교재 예) (1, 1)에서 (10, 7): Δx = 9, Δy = 6, C1 = 12, C2 = −6, p1 = 12 − 9 = 3</div>
+    <div class="tbl"><table>
+      <tr><th>k</th><th>현재 점</th><th>p</th><th>판단</th><th>다음 점</th></tr>
+      <tr><td>1</td><td>(1,1)</td><td class="num">3</td><td>≥ 0, +C2</td><td>(2,2)</td></tr>
+      <tr><td>2</td><td>(2,2)</td><td class="num">−3</td><td>&lt; 0, +C1</td><td>(3,2)</td></tr>
+      <tr><td>3</td><td>(3,2)</td><td class="num">9</td><td>≥ 0</td><td>(4,3)</td></tr>
+      <tr><td>4</td><td>(4,3)</td><td class="num">3</td><td>≥ 0</td><td>(5,4)</td></tr>
+      <tr><td>5</td><td>(5,4)</td><td class="num">−3</td><td>&lt; 0</td><td>(6,4)</td></tr>
+      <tr><td>6</td><td>(6,4)</td><td class="num">9</td><td>≥ 0</td><td>(7,5)</td></tr>
+      <tr><td>7</td><td>(7,5)</td><td class="num">3</td><td>≥ 0</td><td>(8,6)</td></tr>
+      <tr><td>8</td><td>(8,6)</td><td class="num">−3</td><td>&lt; 0</td><td>(9,6)</td></tr>
+      <tr><td>9</td><td>(9,6)</td><td class="num">9</td><td>≥ 0</td><td>(10,7)</td></tr>
+    </table></div>
+    <p>답: <b>(1,1) (2,2) (3,2) (4,3) (5,4) (6,4) (7,5) (8,6) (9,6) (10,7)</b></p>
+  </article>
+
+  <article class="hot" id="h-bcircle">
+    <h3>브레즌햄 원 그리기 <span class="hottag">출제</span></h3>
+    <ul>
+      <li>원: (x − x<sub>c</sub>)² + (y − y<sub>c</sub>)² = r², 극좌표 x = x<sub>c</sub> + r cosθ, y = y<sub>c</sub> + r sinθ.</li>
+      <li>브레즌햄: 제곱근 삼각함수 없이 <b>정수 연산만</b>. 45° ≤ θ ≤ 90° 구간(1/8)만 계산하고 나머지는 <b>대칭</b>으로.</li>
+      <li>시작점 (x<sub>c</sub>, y<sub>c</sub> + r), x를 1씩 늘리면 다음 점은 (x+1, y) 또는 (x+1, y−1).</li>
+      <li>초기값 <b>p<sub>1</sub> = 3 − 2r</b></li>
+      <li><b>p &lt; 0</b> → (x+1, y), p += <b>4x + 6</b></li>
+      <li><b>p ≥ 0</b> → (x+1, y−1), p += <b>4(x − y) + 10</b> (x, y는 현재 점)</li>
+      <li>x ≥ y가 되면 1/8 구간 끝.</li>
+    </ul>
+    <div class="calc">교재 예) 중심 (0, 0), 반지름 6: p1 = 3 − 12 = −9</div>
+    <div class="tbl"><table>
+      <tr><th>현재 점</th><th>p</th><th>판단</th><th>다음 점</th><th>새 p</th></tr>
+      <tr><td>(0,6)</td><td class="num">−9</td><td>&lt; 0</td><td>(1,6)</td><td class="num">−9 + 0 + 6 = −3</td></tr>
+      <tr><td>(1,6)</td><td class="num">−3</td><td>&lt; 0</td><td>(2,6)</td><td class="num">−3 + 4 + 6 = 7</td></tr>
+      <tr><td>(2,6)</td><td class="num">7</td><td>≥ 0</td><td>(3,5)</td><td class="num">7 + 4(2 − 6) + 10 = 1</td></tr>
+      <tr><td>(3,5)</td><td class="num">1</td><td>≥ 0</td><td>(4,4)</td><td class="num">x = y 끝</td></tr>
+    </table></div>
+    <p>1/8 구간 점: <b>(0,6) (1,6) (2,6) (3,5) (4,4)</b>. 나머지는 (±x, ±y), (±y, ±x)로 대칭해서 8배.</p>
+  </article>
+
+  <article class="hot" id="h-inside">
+    <h3>다각형 내부 판단 규칙 <span class="hottag">출제</span></h3>
+    <div class="tbl"><table>
+      <tr><th></th><th>홀짝 규칙 (Even-Odd)</th><th>접기 횟수 규칙 (Non-Zero Winding)</th></tr>
+      <tr><td>보는 것</td><td><b>몇 번</b> 교차했나</td><td><b>어느 방향</b>으로 교차했나</td></tr>
+      <tr><td>방법</td><td>점에서 한쪽으로 주사선을 그어 경계와 교차한 횟수를 셈</td><td>에지 방향을 꼭짓점 순서로 정하고, 아래 방향 에지와 교차하면 +1, 위 방향이면 −1 해서 합을 구함</td></tr>
+      <tr><td>판단</td><td><b>홀수 → 내부, 짝수 → 외부</b></td><td><b>합 ≠ 0 → 내부, 합 = 0 → 외부</b></td></tr>
+      <tr><td>특징</td><td>구현이 간단</td><td>조금 복잡하지만 에지 방향으로 내부 외부를 자유롭게 지정, 정교한 드로잉 소프트웨어에서 사용</td></tr>
+    </table></div>
+    <p class="warn">별 모양처럼 겹친 도형의 가운데 오각형: 홀짝 규칙은 2번 교차라 <b>외부</b>, 접기 횟수 규칙은 같은 방향 2번이라 합 2로 <b>내부</b>. 결과가 다르게 나오는 대표 예</p>
+
+    <h4>그림으로 보기 1 별 모양</h4>
+    <p>판단하고 싶은 점(검은 점)에서 <b>오른쪽으로 빨간 선</b>을 쭉 긋고, 테두리와 만나는 곳(빨간 점)을 봐요. 별은 꼭짓점을 한 칸씩 건너뛰며 한 붓으로 그린 도형이라 테두리끼리 겹쳐요. 회색 화살표는 그린 순서 방향이에요.</p>
+    <div class="figs">
+      <figure><svg class="fig rule" viewBox="0 0 250 200" role="img" aria-label="홀짝 규칙 별 가운데 빔"><defs><marker id="ah1" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto"><path class="ah" d="M0 0 L10 5 L0 10 z"/></marker></defs><path class="shape" fill-rule="evenodd" d="M100.0 20.0 L147.0 164.7 L23.9 75.3 L176.1 75.3 L53.0 164.7 Z"/><path class="edge" d="M100.0 20.0 L147.0 164.7 L23.9 75.3 L176.1 75.3 L53.0 164.7 Z"/><line class="ray" x1="100" y1="45" x2="244" y2="45"/><circle class="hit" cx="108.1" cy="45" r="4"/><circle class="pt" cx="100" cy="45" r="5"/><text x="190" y="39">1번 홀수</text><line class="ray" x1="100" y1="100" x2="244" y2="100"/><circle class="hit" cx="126.0" cy="100" r="4"/><circle class="hit" cx="142.1" cy="100" r="4"/><circle class="pt" cx="100" cy="100" r="5"/><text x="190" y="94">2번 짝수</text></svg><figcaption><b>홀짝 규칙</b>: 위 꼭짓점 안의 점은 1번 만나서 홀수 → <b>내부</b>. 가운데 점은 2번 만나서 짝수 → <b>외부</b>. 그래서 가운데 오각형이 비어요</figcaption></figure>
+      <figure><svg class="fig rule" viewBox="0 0 250 200" role="img" aria-label="접기 횟수 규칙 별 가운데 채움"><defs><marker id="ah2" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto"><path class="ah" d="M0 0 L10 5 L0 10 z"/></marker></defs><path class="shape" fill-rule="nonzero" d="M100.0 20.0 L147.0 164.7 L23.9 75.3 L176.1 75.3 L53.0 164.7 Z"/><path class="edge" d="M100.0 20.0 L147.0 164.7 L23.9 75.3 L176.1 75.3 L53.0 164.7 Z"/><line class="dir" x1="119.7" y1="80.8" x2="127.3" y2="103.9" marker-end="url(#ah2)"/><line class="dir" x1="95.3" y1="127.2" x2="75.6" y2="112.8" marker-end="url(#ah2)"/><line class="dir" x1="87.8" y1="75.3" x2="112.2" y2="75.3" marker-end="url(#ah2)"/><line class="dir" x1="124.4" y1="112.8" x2="104.7" y2="127.2" marker-end="url(#ah2)"/><line class="dir" x1="72.7" y1="103.9" x2="80.3" y2="80.8" marker-end="url(#ah2)"/><line class="ray" x1="100" y1="100" x2="244" y2="100"/><circle class="hit" cx="126.0" cy="100" r="4"/><circle class="hit" cx="142.1" cy="100" r="4"/><circle class="pt" cx="100" cy="100" r="5"/><text x="190" y="94">+1 +1 = 2</text></svg><figcaption><b>접기 횟수 규칙</b>: 가운데 점의 빨간 선이 만나는 두 변이 <b>둘 다 아래로 내려가는 변</b>이라 +1 +1 = 2. 0이 아니니 <b>내부</b>, 가운데도 칠해져요</figcaption></figure>
+    </div>
+
+    <h4>그림으로 보기 2 사각형 안에 사각형</h4>
+    <p>접기 횟수 규칙은 <b>방향</b>을 보니까, 안쪽 사각형을 어느 방향으로 그렸느냐에 따라 구멍이 생기기도 하고 안 생기기도 해요. 홀짝 규칙은 방향과 상관없이 2번 만나니까 항상 구멍이에요.</p>
+    <div class="figs">
+      <figure><svg class="fig rule" viewBox="0 0 250 200" role="img" aria-label="같은 방향 사각형 채움"><defs><marker id="ah3" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto"><path class="ah" d="M0 0 L10 5 L0 10 z"/></marker></defs><path class="shape" fill-rule="nonzero" d="M20.0 20.0 L180.0 20.0 L180.0 180.0 L20.0 180.0 Z M70.0 70.0 L130.0 70.0 L130.0 130.0 L70.0 130.0 Z"/><path class="edge" d="M20.0 20.0 L180.0 20.0 L180.0 180.0 L20.0 180.0 Z M70.0 70.0 L130.0 70.0 L130.0 130.0 L70.0 130.0 Z"/><line class="dir" x1="87.2" y1="20.0" x2="112.8" y2="20.0" marker-end="url(#ah3)"/><line class="dir" x1="180.0" y1="87.2" x2="180.0" y2="112.8" marker-end="url(#ah3)"/><line class="dir" x1="112.8" y1="180.0" x2="87.2" y2="180.0" marker-end="url(#ah3)"/><line class="dir" x1="20.0" y1="112.8" x2="20.0" y2="87.2" marker-end="url(#ah3)"/><line class="dir" x1="95.2" y1="70.0" x2="104.8" y2="70.0" marker-end="url(#ah3)"/><line class="dir" x1="130.0" y1="95.2" x2="130.0" y2="104.8" marker-end="url(#ah3)"/><line class="dir" x1="104.8" y1="130.0" x2="95.2" y2="130.0" marker-end="url(#ah3)"/><line class="dir" x1="70.0" y1="104.8" x2="70.0" y2="95.2" marker-end="url(#ah3)"/><line class="ray" x1="100" y1="100" x2="244" y2="100"/><circle class="hit" cx="180.0" cy="100" r="4"/><circle class="hit" cx="130.0" cy="100" r="4"/><circle class="pt" cx="100" cy="100" r="5"/><text x="190" y="94">+1 +1 = 2</text></svg><figcaption>안쪽도 바깥과 <b>같은 방향</b>: 만나는 오른쪽 두 변이 둘 다 아래로 → 합 2 → <b>내부</b>, 구멍 없음</figcaption></figure>
+      <figure><svg class="fig rule" viewBox="0 0 250 200" role="img" aria-label="반대 방향 사각형 구멍"><defs><marker id="ah4" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto"><path class="ah" d="M0 0 L10 5 L0 10 z"/></marker></defs><path class="shape" fill-rule="nonzero" d="M20.0 20.0 L180.0 20.0 L180.0 180.0 L20.0 180.0 Z M70.0 70.0 L70.0 130.0 L130.0 130.0 L130.0 70.0 Z"/><path class="edge" d="M20.0 20.0 L180.0 20.0 L180.0 180.0 L20.0 180.0 Z M70.0 70.0 L70.0 130.0 L130.0 130.0 L130.0 70.0 Z"/><line class="dir" x1="87.2" y1="20.0" x2="112.8" y2="20.0" marker-end="url(#ah4)"/><line class="dir" x1="180.0" y1="87.2" x2="180.0" y2="112.8" marker-end="url(#ah4)"/><line class="dir" x1="112.8" y1="180.0" x2="87.2" y2="180.0" marker-end="url(#ah4)"/><line class="dir" x1="20.0" y1="112.8" x2="20.0" y2="87.2" marker-end="url(#ah4)"/><line class="dir" x1="70.0" y1="95.2" x2="70.0" y2="104.8" marker-end="url(#ah4)"/><line class="dir" x1="95.2" y1="130.0" x2="104.8" y2="130.0" marker-end="url(#ah4)"/><line class="dir" x1="130.0" y1="104.8" x2="130.0" y2="95.2" marker-end="url(#ah4)"/><line class="dir" x1="104.8" y1="70.0" x2="95.2" y2="70.0" marker-end="url(#ah4)"/><line class="ray" x1="100" y1="100" x2="244" y2="100"/><circle class="hit" cx="180.0" cy="100" r="4"/><circle class="hit" cx="130.0" cy="100" r="4"/><circle class="pt" cx="100" cy="100" r="5"/><text x="190" y="94">−1 +1 = 0</text></svg><figcaption>안쪽만 <b>반대 방향</b>: 안쪽 오른쪽 변은 위로 −1, 바깥 오른쪽 변은 아래로 +1 → 합 0 → <b>외부</b>, 구멍</figcaption></figure>
+    </div>
+
+    <h4>시험에서 푸는 순서</h4>
+    <ol>
+      <li>판단할 점에서 한쪽(보통 오른쪽)으로 수평선을 긋는다.</li>
+      <li>홀짝 규칙: 테두리와 만나는 점을 센다. <b>홀수면 내부, 짝수면 외부</b>.</li>
+      <li>접기 횟수 규칙: 만나는 변마다 방향을 본다. 아래로 가는 변 <b>+1</b>, 위로 가는 변 <b>−1</b>. 다 더해서 <b>0이 아니면 내부, 0이면 외부</b>.</li>
+    </ol>
+    <p class="note">+1 −1 부호는 반대로 잡아도 돼요. 같은 방향끼리는 더해지고 반대 방향끼리는 지워진다는 것만 맞으면 판단 결과는 같아요.</p>
+  </article>
+
+  <article class="hot" id="h-fill">
+    <h3>영역 채우기 <span class="hottag">다각형 알고리즘</span></h3>
+    <ul>
+      <li>영역 = 같은 색의 이웃 픽셀 집합. 4방향 연결, 8방향 연결. 경계가 8방향이면 내부는 4방향, 경계가 4방향이면 내부는 8방향으로 채운다.</li>
+      <li><b>시드 채우기</b>: 내부 한 점(시드)에서 이웃으로 퍼짐, 재귀 사용, 페인팅 프로그램.
+        <ul>
+          <li>Flood Fill: 기존 영역 색과 <b>같은 색이면</b> 채우고 계속</li>
+          <li>Boundary Fill: <b>경계색을 만나면</b> 멈춤, 경계색도 채우기 색도 아니면 채움</li>
+        </ul></li>
+      <li><b>다각형 주사 변환</b>(주사선 채우기): 주사선마다 다각형 내부 구간을 구해 칠함, 벡터 그리기 소프트웨어.</li>
+      <li><b>y-x 주사선 알고리즘</b>: 에지를 작은 y 순서로 정렬한 EL(Edge List), 현재 주사선과 만나는 에지만 모은 AEL(Active Edge List). 매 주사선마다 끝난 에지(y<sub>b</sub> &lt; y<sub>k</sub>)는 AEL에서 빼고, 시작하는 에지(y<sub>a</sub> = y<sub>k</sub>)는 EL에서 AEL로 옮긴 뒤, 교차점 x를 정렬해 <b>두 개씩 짝지어</b> 그 사이를 칠한다. 일관성(coherence) 덕분에 효율적.</li>
+    </ul>
+  </article>
+
+  <article class="hot" id="h-aa">
+    <h3>앨리어싱과 안티앨리어싱 <span class="hottag">출제</span></h3>
+    <p class="core">앨리어싱 = 계단 현상(jaggies). 아날로그 그림을 디지털로 바꿀 때 생기는 <b>샘플링 오차</b> 때문. 저해상도에서 두드러진다</p>
+    <ul>
+      <li>증상: 경계가 들쭉날쭉하고, 선이 움직이면 위치가 튀어 보임.</li>
+      <li><b>안티앨리어싱</b>: 경계가 부드럽게 보이게 하는 기법. 컬러나 회색조 장치에서 가능.
+        <ul>
+          <li>해상도를 높인다 → 물리적 한계</li>
+          <li>경계 픽셀에서 <b>물체 색과 배경 색을 혼합</b>해서 그린다 → 선, 다각형 채우기, 문자 생성에 적용</li>
+        </ul></li>
+    </ul>
+    <div class="tbl"><table>
+      <tr><th>기법</th><th>종류</th><th>내용</th></tr>
+      <tr><td>SSAA 수퍼샘플링</td><td>샘플링 수 늘리기</td><td>한 픽셀을 여러 개로 나눠 고해상도로 그린 뒤, 픽셀 안에 들어간 개수에 <b>비례해 명암</b>을 정해 원래 해상도로 줄임</td></tr>
+      <tr><td>MSAA 멀티샘플링</td><td>샘플링 수 늘리기</td><td>SSAA를 효율화, <b>폴리곤 외곽선이 지나는 곳만</b> 적용, 대부분 프로그램이 사용</td></tr>
+      <tr><td>FXAA, MLAA</td><td>후처리</td><td>렌더링 후 주변 픽셀 밝기 차이로 색을 섞음 (FXAA는 NVIDIA)</td></tr>
+    </table></div>
+  </article>
+</section>
+
+<!-- 3장 2D 변환 -->
+<section class="ch" id="tr2d">
+  <h2><span class="no">3장</span>2차원 변환: 이동 회전 신축 반사 밀림</h2>
+  <p class="chsub">한 문제에 여러 변환이 섞여서 나왔다고 해요. 순서와 행렬을 같이 외우기</p>
+
+  <article>
+    <h3>기본 변환과 3×3 행렬</h3>
+    <div class="tbl"><table>
+      <tr><th>변환</th><th>식</th><th>동차 3×3 행렬</th></tr>
+      <tr><td>이동 T(tx, ty)</td><td>x' = x + tx, y' = y + ty</td><td><span class="meq"><span class="mat" style="--c:1"><span>x'</span><span>y'</span><span>1</span></span> = <span class="mat" style="--c:3"><span>1</span><span>0</span><span>tx</span><span>0</span><span>1</span><span>ty</span><span>0</span><span>0</span><span>1</span></span> · <span class="mat" style="--c:1"><span>x</span><span>y</span><span>1</span></span></span></td></tr>
+      <tr><td>신축 S(sx, sy)</td><td>x' = sx·x, y' = sy·y</td><td><span class="meq"><span class="mat" style="--c:1"><span>x'</span><span>y'</span><span>1</span></span> = <span class="mat" style="--c:3"><span>sx</span><span>0</span><span>0</span><span>0</span><span>sy</span><span>0</span><span>0</span><span>0</span><span>1</span></span> · <span class="mat" style="--c:1"><span>x</span><span>y</span><span>1</span></span></span></td></tr>
+      <tr><td>회전 R(θ)</td><td>x' = x cosθ − y sinθ, y' = x sinθ + y cosθ</td><td><span class="meq"><span class="mat" style="--c:1"><span>x'</span><span>y'</span><span>1</span></span> = <span class="mat" style="--c:3"><span>cosθ</span><span>−sinθ</span><span>0</span><span>sinθ</span><span>cosθ</span><span>0</span><span>0</span><span>0</span><span>1</span></span> · <span class="mat" style="--c:1"><span>x</span><span>y</span><span>1</span></span></span></td></tr>
+    </table></div>
+    <ul>
+      <li>신축은 크기뿐 아니라 <b>원점으로부터 위치도</b> 배율만큼 바뀜. s &gt; 1 확대, s = 1 그대로, 0 &lt; s &lt; 1 축소, s &lt; 0 반사까지.</li>
+      <li>회전은 원점 중심, θ 양수가 <b>반시계</b>.</li>
+      <li>동차좌표 (x, y, 1) 덕분에 모든 변환을 행렬 곱 하나로 합칠 수 있음.</li>
+    </ul>
+  </article>
+
+  <article class="hot" id="h-order">
+    <h3>합성 변환 순서 <span class="hottag">출제</span></h3>
+    <p class="core">P' = M<sub>n</sub> ··· M<sub>2</sub> M<sub>1</sub> P. <b>먼저 하는 변환이 오른쪽</b>, 점에 가까운 쪽부터 적용</p>
+    <ul>
+      <li><b>임의의 점 (x0, y0) 기준 회전</b>: T(x0, y0) · R(θ) · T(−x0, −y0). 기준점을 원점으로 옮기고, 돌리고, 되돌림.</li>
+      <li><b>임의의 점 기준 신축</b>: T(x0, y0) · S(sx, sy) · T(−x0, −y0).</li>
+      <li>같은 종류 연속: T끼리는 이동량 더하기, S끼리는 배율 곱하기, R끼리는 각도 더하기.</li>
+      <li>행렬 곱은 <b>결합법칙 O, 교환법칙 X</b> (A·B ≠ B·A). 그래서 순서가 바뀌면 결과가 달라짐.</li>
+    </ul>
+    <div class="calc">교재 예) 삼각형 (5,7) (10,5) (8,10)을 <b>(0,1)에 대해 반시계 90° 회전한 뒤 2배 신축</b><br>
+      M = S(2,2) · T(0,1) · R(90°) · T(0,−1)<br><span class="meq">M = <span class="mat" style="--c:3"><span>2</span><span>0</span><span>0</span><span>0</span><span>2</span><span>0</span><span>0</span><span>0</span><span>1</span></span> · <span class="mat" style="--c:3"><span>1</span><span>0</span><span>0</span><span>0</span><span>1</span><span>1</span><span>0</span><span>0</span><span>1</span></span> · <span class="mat" style="--c:3"><span>0</span><span>−1</span><span>0</span><span>1</span><span>0</span><span>0</span><span>0</span><span>0</span><span>1</span></span> · <span class="mat" style="--c:3"><span>1</span><span>0</span><span>0</span><span>0</span><span>1</span><span>−1</span><span>0</span><span>0</span><span>1</span></span> = <span class="mat" style="--c:3"><span>0</span><span>−2</span><span>2</span><span>2</span><span>0</span><span>2</span><span>0</span><span>0</span><span>1</span></span></span><br>      검산 (5,7): x' = −2·7 + 2 = −12, y' = 2·5 + 2 = 12 → (−12, 12)<br>
+      1. T(0,−1): y에서 1 빼기 → (5,6) (10,4) (8,9)<br>
+      2. R(90°): (x, y) → (−y, x) → (−6,5) (−4,10) (−9,8)<br>
+      3. T(0,1): y에 1 더하기 → (−6,6) (−4,11) (−9,9)<br>
+      4. S(2,2): 두 배 → <b>(−12,12) (−8,22) (−18,18)</b></div>
+    <p class="note">교재에는 답이 없어서 직접 계산했어요. "2배 스케일"은 원점 기준으로 계산했어요.</p>
+  </article>
+
+  <article class="hot" id="h-reflect">
+    <h3>반사 (무조건 나옴) <span class="hottag">출제</span></h3>
+    <div class="tbl"><table>
+      <tr><th>기준</th><th>결과</th><th>동차 3×3 행렬</th></tr>
+      <tr><td>x축 (y = 0)</td><td>(x, −y)</td><td><span class="mat" style="--c:3"><span>1</span><span>0</span><span>0</span><span>0</span><span>−1</span><span>0</span><span>0</span><span>0</span><span>1</span></span></td></tr>
+      <tr><td>y축 (x = 0)</td><td>(−x, y)</td><td><span class="mat" style="--c:3"><span>−1</span><span>0</span><span>0</span><span>0</span><span>1</span><span>0</span><span>0</span><span>0</span><span>1</span></span></td></tr>
+      <tr><td>원점</td><td>(−x, −y)</td><td><span class="mat" style="--c:3"><span>−1</span><span>0</span><span>0</span><span>0</span><span>−1</span><span>0</span><span>0</span><span>0</span><span>1</span></span></td></tr>
+      <tr><td>y = x</td><td>(y, x)</td><td><span class="mat" style="--c:3"><span>0</span><span>1</span><span>0</span><span>1</span><span>0</span><span>0</span><span>0</span><span>0</span><span>1</span></span></td></tr>
+      <tr><td>y = −x</td><td>(−y, −x)</td><td><span class="mat" style="--c:3"><span>0</span><span>−1</span><span>0</span><span>−1</span><span>0</span><span>0</span><span>0</span><span>0</span><span>1</span></span></td></tr>
+    </table></div>
+    <ul>
+      <li>y = x 반사를 기본 변환으로: <b>시계 45° 회전 → x축 반사 → 반시계 45° 회전</b>. 즉 R(45°) · Mx · R(−45°).</li>
+      <li><b>y = mx + b 반사</b>: 직선을 원점을 지나게 옮기고(T(0, −b)), 직선을 x축에 맞게 돌리고(R(−θ), θ = arctan m), x축 반사, 거꾸로 돌리고(R(θ)), 되돌림(T(0, b)).<br>
+        M = T(0, b) · R(θ) · Mx · R(−θ) · T(0, −b)<br><span class="meq">y = x + 2 이면 M = <span class="mat" style="--c:3"><span>1</span><span>0</span><span>0</span><span>0</span><span>1</span><span>2</span><span>0</span><span>0</span><span>1</span></span> · <span class="mat" style="--c:3"><span>0</span><span>1</span><span>0</span><span>1</span><span>0</span><span>0</span><span>0</span><span>0</span><span>1</span></span> · <span class="mat" style="--c:3"><span>1</span><span>0</span><span>0</span><span>0</span><span>1</span><span>−2</span><span>0</span><span>0</span><span>1</span></span> = <span class="mat" style="--c:3"><span>0</span><span>1</span><span>−2</span><span>1</span><span>0</span><span>2</span><span>0</span><span>0</span><span>1</span></span></span></li>
+    </ul>
+    <div class="calc">교재 예) 직선 y = x + 2에 대해 선분 (0,5) (8,2) 반사<br>
+      1. T(0,−2): (0,3) (8,0) → 이제 직선이 y = x<br>
+      2. y = x 반사, x y 바꾸기: (3,0) (0,8)<br>
+      3. T(0,2): <b>(3,2) (0,10)</b><br>
+      검산: (0,5)와 (3,2)의 중점 (1.5, 3.5)는 y = x + 2 위에 있음</div>
+    <p class="note">교재에 답이 없어서 직접 계산했어요.</p>
+  </article>
+
+  <article class="hot" id="h-shear">
+    <h3>밀림 (Shearing) <span class="hottag">출제</span></h3>
+    <p class="core">한 부분을 고정하고 다른 부분을 밀어 생기는 변환. 고정된 곳에서 <b>멀수록 많이</b> 밀림</p>
+    <div class="tbl"><table>
+      <tr><th></th><th>식</th><th>행렬</th></tr>
+      <tr><td>x축 방향 밀림</td><td>x' = x + hx·y, y' = y</td><td><span class="meq"><span class="mat" style="--c:1"><span>x'</span><span>y'</span><span>1</span></span> = <span class="mat" style="--c:3"><span>1</span><span>hx</span><span>0</span><span>0</span><span>1</span><span>0</span><span>0</span><span>0</span><span>1</span></span> · <span class="mat" style="--c:1"><span>x</span><span>y</span><span>1</span></span></span></td></tr>
+      <tr><td>y축 방향 밀림</td><td>x' = x, y' = y + hy·x</td><td><span class="meq"><span class="mat" style="--c:1"><span>x'</span><span>y'</span><span>1</span></span> = <span class="mat" style="--c:3"><span>1</span><span>0</span><span>0</span><span>hy</span><span>1</span><span>0</span><span>0</span><span>0</span><span>1</span></span> · <span class="mat" style="--c:1"><span>x</span><span>y</span><span>1</span></span></span></td></tr>
+    </table></div>
+    <div class="calc">예) 단위 정사각형 (0,0) (1,0) (1,1) (0,1)을 hx = 2로 x 밀림<br>
+      y = 0인 아랫변은 그대로, y = 1인 윗변은 x가 2만큼 → <b>(0,0) (1,0) (3,1) (2,1)</b> 평행사변형</div>
+    <p class="note">이 숫자 예제는 연습용으로 만든 거예요.</p>
+  </article>
+
+  <article>
+    <h3>변환 유형</h3>
+    <div class="tbl"><table>
+      <tr><th>유형</th><th>보존</th><th>포함 변환</th></tr>
+      <tr><td>강체 변환</td><td>크기, 각도</td><td>이동, 회전</td></tr>
+      <tr><td>유사 변환</td><td>모양</td><td>이동, 회전, 신축</td></tr>
+      <tr><td>선형 변환</td><td>T(u + v) = T(u) + T(v), T(cu) = cT(u)</td><td>회전, 신축, 반사, 밀림. <b>이동은 아님</b></td></tr>
+      <tr><td>어파인 변환</td><td>직선, 길이의 비, 평행성</td><td>이동, 회전, 신축, 반사, 밀림</td></tr>
+      <tr><td>원근 변환</td><td>원근감</td><td>투영 변환</td></tr>
+    </table></div>
+  </article>
+</section>
+
+<!-- 지엘1 -->
+<section class="ch" id="gl1">
+  <h2><span class="no">지엘1</span>OpenGL 기초와 GLFW</h2>
+  <p class="chsub">OpenGL이 뭘 하고 뭘 안 하는지, 파이프라인, GLFW 함수 순서</p>
+
+  <article>
+    <h3>OpenGL이란</h3>
+    <p class="core">GPU에게 "무엇을 그려라"라고 명령하는 그래픽스 API 명세. 창 띄우기, 키보드 입력은 전혀 안 하고 오직 "그리기"만</p>
+    <ul>
+      <li>1982년 SGI의 Iris GL에서 시작, 1992년 OpenGL 1.0.</li>
+      <li>특징: <b>플랫폼 독립</b>, <b>하드웨어 가속</b>(GPU), <b>GLSL 지원</b>, <b>상태 기반(State Machine)</b>.</li>
+      <li>상태 머신: 상태를 설정해 두면 <b>다른 상태로 바꾸기 전까지</b> 모든 도형에 계속 적용.</li>
+    </ul>
+    <div class="tbl"><table>
+      <tr><th>구성 요소</th><th>역할</th></tr>
+      <tr><td>OpenGL</td><td>그래픽 렌더링 API</td></tr>
+      <tr><td>GLFW</td><td>윈도우, 입력, OpenGL Context</td></tr>
+      <tr><td>GLEW / GLAD</td><td>OpenGL 함수 로딩 (Windows opengl32.dll은 1.1 함수만 제공해서 최신 함수 주소를 드라이버에서 찾아옴)</td></tr>
+      <tr><td>GLM</td><td>벡터, 행렬, 변환 계산 (header-only)</td></tr>
+      <tr><td>GLSL</td><td>GPU에서 실행되는 셰이더 언어</td></tr>
+    </table></div>
+    <p class="warn"><code>glewInit()</code>은 반드시 <b>OpenGL Context 생성 이후</b> (<code>glfwMakeContextCurrent</code> 다음)에 호출</p>
+  </article>
+
+  <article>
+    <h3>버전 흐름</h3>
+    <div class="tbl"><table>
+      <tr><th>버전</th><th>연도</th><th>외울 것</th></tr>
+      <tr><td>1.0</td><td>1992</td><td>고정 기능 파이프라인</td></tr>
+      <tr><td>2.0</td><td>2004</td><td><b>GLSL 1.10 도입</b>, 프로그래머블 정점/프래그먼트 셰이더</td></tr>
+      <tr><td>3.0</td><td>2008</td><td>고정 파이프라인 폐기 시작, FBO, <b>VAO</b> 도입</td></tr>
+      <tr><td>3.2</td><td>2009</td><td>Core / Compatibility 분리, 지오메트리 셰이더</td></tr>
+      <tr><td>3.3</td><td>2010</td><td><b>GLSL 버전 통일 (3.30)</b>. 이번 학기 사용 버전</td></tr>
+      <tr><td>4.0</td><td>2010</td><td>테셀레이션 셰이더</td></tr>
+      <tr><td>4.3</td><td>2012</td><td>컴퓨트 셰이더, SSBO</td></tr>
+      <tr><td>4.6</td><td>2017</td><td>최종 메이저 버전, Vulkan 연동</td></tr>
+    </table></div>
+  </article>
+
+  <article>
+    <h3>그래픽스 파이프라인</h3>
+    <p class="core">공간에 있는 물체 데이터를 받아 화면 이미지 데이터를 만드는 처리 과정</p>
+    <div class="flow"><span>Vertex Data</span><i>→</i><span>Vertex Processing</span><i>→</i><span>Primitive Assembly</span><i>→</i><span>Rasterization</span><i>→</i><span>Fragment Processing</span><i>→</i><span>Frame buffer</span></div>
+    <div class="tbl"><table>
+      <tr><th>단계</th><th>하는 일</th></tr>
+      <tr><td>Vertex Processing</td><td>정점에 변환, 클리핑, 투영 → 화면 위치</td></tr>
+      <tr><td>Primitive Assembly</td><td>정점 집합을 점, 선, 삼각형(프리미티브)으로</td></tr>
+      <tr><td>Rasterization</td><td>프리미티브를 프래그먼트(픽셀 후보)들로 변환</td></tr>
+      <tr><td>Fragment Processing</td><td>프래그먼트의 픽셀 색상 계산, 블렌딩 등 후처리</td></tr>
+      <tr><td>Frame buffer</td><td>화면에 그릴 래스터 이미지를 저장하는 그래픽스 전용 메모리</td></tr>
+    </table></div>
+    <div class="tbl"><table>
+      <tr><th></th><th>고정 파이프라인</th><th>프로그래머블 파이프라인</th></tr>
+      <tr><td>시기</td><td>OpenGL 1.x</td><td>OpenGL 2.0 이상</td></tr>
+      <tr><td>특징</td><td>하드웨어에 고정, 수정 불가, 코드 단순, 효과 제한</td><td>셰이더를 직접 작성, 자유로움, 배우기 어려움</td></tr>
+      <tr><td>코드 흐름</td><td>행렬 설정 → <code>glBegin()</code> → 위치/색 → <code>glEnd()</code></td><td>셰이더 컴파일·링크 → GPU 버퍼에 데이터 → 프로그램 바인딩 → <code>glDrawArrays()</code></td></tr>
+    </table></div>
+    <ul>
+      <li><b>GPU</b>: 단순 연산 코어 수천 개, <b>병렬 처리</b>.</li>
+      <li><b>버텍스 셰이더</b>: 정점 하나하나, MVP 곱해서 좌표 변환. 정점 개수만큼 실행.</li>
+      <li><b>프래그먼트 셰이더</b>: 픽셀 후보 하나하나, 최종 색(RGB)과 투명도(Alpha). 해상도에 비례해 실행.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h3>GLFW 프로그램 흐름</h3>
+    <div class="flow"><span>glfwInit</span><i>→</i><span>glfwWindowHint</span><i>→</i><span>glfwCreateWindow</span><i>→</i><span>glfwMakeContextCurrent</span><i>→</i><span>glewInit</span><i>→</i><span>렌더링 루프</span><i>→</i><span>glfwDestroyWindow</span><i>→</i><span>glfwTerminate</span></div>
+<pre class="code"><code>glfwInit();
+glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL Window", nullptr, nullptr);
+glfwMakeContextCurrent(window);
+glewExperimental = GL_TRUE;
+glewInit();
+glViewport(0, 0, 800, 600);
+while (!glfwWindowShouldClose(window)) {
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+    glClearColor(0.0f, 0.0f, 1.0f, 1.0f);   // 파랑
+    glClear(GL_COLOR_BUFFER_BIT);
+    glfwSwapBuffers(window);                 // 루프 끝에서 버퍼 교체
+    glfwPollEvents();                        // 이벤트 가져오기
+}
+glfwDestroyWindow(window);
+glfwTerminate();</code></pre>
+    <ul>
+      <li><b>Context</b>: OpenGL이 동작하는 데 필요한 모든 상태와 리소스(현재 셰이더, 바인딩된 VAO/VBO, Depth Test, Viewport…). Window는 보여주는 캔버스, Context는 그리는 작업 공간과 상태.</li>
+      <li><code>glfwCreateWindow(w, h, title, monitor, share)</code>: 일반 창이면 monitor = NULL, 전체화면이면 <code>glfwGetPrimaryMonitor()</code>. 실패하면 NULL.</li>
+      <li>Hint: <code>CORE_PROFILE</code> = modern, <code>COMPAT_PROFILE</code> = legacy. <code>glColor3f</code>, <code>glRectf</code> 같은 Legacy 함수는 COMPAT일 때만.</li>
+      <li><code>glfwWindowShouldClose</code>: X 버튼, Alt+F4 등에서 TRUE.</li>
+      <li><code>glfwSwapBuffers</code>: <b>Back buffer</b>에 그린 걸 Front buffer와 교환(더블 버퍼링, 깜빡임 방지).</li>
+    </ul>
+    <div class="tbl"><table>
+      <tr><th></th><th><code>glfwPollEvents</code></th><th><code>glfwWaitEvents</code></th></tr>
+      <tr><td>동작</td><td>이벤트 확인 후 <b>즉시 반환</b></td><td>이벤트가 올 때까지 <b>대기</b></td></tr>
+      <tr><td>CPU</td><td>상대적으로 높음</td><td>낮음</td></tr>
+      <tr><td>용도</td><td>실시간 렌더링, 애니메이션, 게임</td><td>UI 프로그램</td></tr>
+    </table></div>
+  </article>
+
+  <article>
+    <h3>입력: 폴링 vs 콜백</h3>
+    <p class="core">폴링 = 내가 매 프레임 계속 물어본다. 콜백 = 이벤트가 생기면 GLFW가 내 함수를 불러준다. 둘 다 <code>glfwPollEvents()</code>가 있어야 동작</p>
+    <div class="tbl"><table>
+      <tr><th>이벤트</th><th>폴링 함수</th><th>콜백 등록 함수</th></tr>
+      <tr><td>키보드</td><td><code>glfwGetKey</code></td><td><code>glfwSetKeyCallback</code></td></tr>
+      <tr><td>문자 입력</td><td>없음</td><td><code>glfwSetCharCallback</code></td></tr>
+      <tr><td>마우스 버튼</td><td><code>glfwGetMouseButton</code></td><td><code>glfwSetMouseButtonCallback</code></td></tr>
+      <tr><td>마우스 위치</td><td><code>glfwGetCursorPos</code></td><td><code>glfwSetCursorPosCallback</code></td></tr>
+      <tr><td>윈도우 크기</td><td><code>glfwGetWindowSize</code></td><td><code>glfwSetWindowSizeCallback</code></td></tr>
+      <tr><td>Framebuffer 크기</td><td><code>glfwGetFramebufferSize</code></td><td><code>glfwSetFramebufferSizeCallback</code></td></tr>
+      <tr><td>창 닫기</td><td><code>glfwWindowShouldClose</code></td><td><code>glfwSetWindowCloseCallback</code></td></tr>
+    </table></div>
+    <ul>
+      <li>폴링 용도: 카메라 이동, 캐릭터 <b>연속 이동</b>, 실시간 키 입력.</li>
+      <li>콜백 용도: 단축키, 메뉴, 마우스 클릭, UI 텍스트 입력, 창 크기 변경.</li>
+    </ul>
+<pre class="code"><code>void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+// action: GLFW_PRESS 처음 누름, GLFW_RELEASE, GLFW_REPEAT 누르고 있을 때 자동 반복
+// mods: GLFW_MOD_SHIFT / CONTROL / ALT / SUPER
+void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)   // 움직일 때마다
+void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) // 앞으로 한 칸 0, 1
+void CharCallback(GLFWwindow* window, unsigned int codepoint)          // A 65, a 97, 1 49
+void FramebufferSizeCallback(GLFWwindow* window, int width, int height)
+{ glViewport(0, 0, width, height); }</code></pre>
+    <ul>
+      <li>Key Callback은 "어떤 <b>키</b>를 눌렀나", Char Callback은 "어떤 <b>문자</b>가 입력됐나". 게임은 Key, 텍스트는 Char.</li>
+      <li>MouseButton은 누르고 놓을 때만, CursorPos는 움직일 때마다.</li>
+      <li>Window Size는 논리 크기, Framebuffer Size는 실제 픽셀 크기. HiDPI에서 다를 수 있고 <b><code>glViewport</code>는 Framebuffer Size 기준</b>.</li>
+      <li>마우스 드래그 상대 이동: 이전 좌표 <code>oldX</code>를 static으로 저장해 <code>dx = mouseX - oldX</code>.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h3>시간 함수</h3>
+<pre class="code"><code>double t = glfwGetTime();   // 시작 후 경과 시간(초). 3초 뒤면 3.0
+glfwSetTime(0.0);           // 0초부터 다시
+glfwSwapInterval(1);        // VSync 켬. 0이면 끔. 컨텍스트 만든 다음 호출
+
+double lastTime = glfwGetTime();
+while (!glfwWindowShouldClose(window)) {
+    double currentTime = glfwGetTime();
+    double deltaTime = currentTime - lastTime;  // 프레임 사이 시간
+    lastTime = currentTime;
+    position += speed * deltaTime;              // 컴퓨터 속도와 상관없이 같은 속도
+    ...
+}</code></pre>
+    <p><b>VSync</b>: FPS를 모니터 재생 빈도에 맞춤. 안 맞으면 <b>Tearing</b>(화면 찢김).</p>
+  </article>
+
+  <article>
+    <h3>기본 함수와 좌표계</h3>
+    <ul>
+      <li>함수 이름 형태: <code>glUniform3f</code> = <b>gl</b>(라이브러리) + <b>Uniform</b>(기본 명령) + <b>3f</b>(인자 3개, float).</li>
+      <li>접미어: b byte, s short, i int, f float, d double, ub unsigned byte, us unsigned short, ui unsigned int.</li>
+      <li>좌표계: <b>화면 중앙이 원점</b>, <b>오른손 좌표계</b>. x 왼→오, y 아래→위, <b>z 화면 안→밖</b>. 기본 범위 <b>[-1.0, 1.0]</b> (NDC).</li>
+      <li><code>glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)</code>: 컬러 / 깊이 / 스텐실(<code>GL_STENCIL_BUFFER_BIT</code>) 버퍼 초기화.</li>
+      <li><code>glClearColor(r, g, b, a)</code>: 바탕색. 각 값은 [0.0, 1.0].</li>
+      <li><code>glViewport(x, y, width, height)</code>: x, y는 뷰포트 <b>좌측 아래</b>. NDC를 윈도우 실제 영역에 매핑.</li>
+      <li>링커에 추가: <code>opengl32.lib glew32.lib glfw3.lib</code>.</li>
+    </ul>
+  </article>
+</section>
+
+<!-- 지엘2 GLSL -->
+<section class="ch" id="glsl">
+  <h2><span class="no">지엘2-1</span>GLSL 기초와 셰이더 프로그램</h2>
+  <p class="chsub">문법, 한정자, 셰이더 객체에서 프로그램까지의 10단계</p>
+
+  <article>
+    <h3>셰이더 단계별 입출력</h3>
+    <div class="tbl"><table>
+      <tr><th>셰이더</th><th>입력</th><th>출력</th><th>역할</th></tr>
+      <tr><td>Vertex</td><td>정점</td><td>변환된 정점</td><td>위치 계산, 좌표 변환. <b>유일한 필수 단계</b></td></tr>
+      <tr><td>Tessellation</td><td>패치</td><td>세분화된 정점</td><td>삼각형을 더 작게, 곡면을 부드럽게</td></tr>
+      <tr><td>Geometry</td><td>점·선·삼각형</td><td>새로운 도형</td><td>도형 생성, 확장</td></tr>
+      <tr><td>Fragment</td><td>프래그먼트</td><td>픽셀 색상</td><td>색, 텍스처, 조명</td></tr>
+      <tr><td>Compute</td><td>데이터</td><td>계산 결과</td><td>파이프라인과 <b>독립</b>, 화면 안 그림 (GPGPU)</td></tr>
+    </table></div>
+    <p>이번 학기: OpenGL 3.3으로 <b>Vertex shader와 Fragment shader</b>만 구현. 두 셰이더는 메인 프로그램과 분리해서 <code>vertex.glsl</code>, <code>fragment.glsl</code>로 따로 작성.</p>
+  </article>
+
+  <article>
+    <h3>GLSL 특징과 자료형</h3>
+    <ul>
+      <li>C 기반. <b>포인터 없음</b>(동적 할당 없음), <b>함수 오버로딩 가능</b>, <b>재귀 불가</b>, 구조체 가능, 인자는 모두 call-by-value.</li>
+      <li>행렬과 벡터가 기본 자료형. 컴파일러는 OpenGL에 내장.</li>
+      <li>스칼라: <code>int float double uint bool</code></li>
+      <li>벡터: <code>vec2~4</code>(float), <code>dvec</code>, <code>bvec</code>, <code>ivec</code>, <code>uvec</code>. <code>vec4</code> = float 4개, <code>ivec3</code> = int 3개.</li>
+      <li>성분 이름: 좌표 <code>x y z w</code>, 색 <code>r g b a</code>, 텍스처 <code>s t p q</code>. <code>a[2] == a.z == a.b == a.p</code>.</li>
+      <li>행렬: <code>mat2~4</code>, <code>matmxn</code>. <code>mat3x2</code> = <b>3열 2행</b>(앞이 열). <b>열 우선</b>.</li>
+      <li>샘플러: <code>sampler1D/2D/3D</code> 텍스처 접근용.</li>
+    </ul>
+<pre class="code"><code>vec3 position(1.0);                 // (1.0, 1.0, 1.0)  스칼라 하나면 전부 채움
+vec4 aColor = vec4(r, vec2(g, b), a); // 섞어서 생성 가능
+mat3 m = mat3(1.0);                 // 대각선 1, 나머지 0 (단위행렬)
+mat3 m = mat3(1.1, 2.1, 3.1,        // 첫 번째 열
+              1.2, 2.2, 3.2,        // 두 번째 열
+              1.3, 2.3, 3.3);       // 세 번째 열
+
+vec3 a = vec3(1.0, 2.0, 3.0);
+vec3 b = vec3(0.1, 0.2, 0.3);
+a + b     // (1.1, 2.2, 3.3)  요소별
+a * b     // (0.1, 0.4, 0.9)  벡터끼리 * 도 요소별
+10.0 * a  // (10, 20, 30)
+
+vec2 v = vec2(10., 20.);
+mat2 M = mat2(1., 2., 3., 4.);      // 열 (1,2), (3,4)
+vec2 w = M * v;  // (1*10 + 3*20, 2*10 + 4*20) = (70, 100)  벡터는 오른쪽에
+
+vec4 b = a.xyxx;  vec3 c = b.zwx;   // 스위즐링: 여러 성분 재배치, 복제</code></pre>
+    <p class="warn"><code>mat2(1,2,3,4)</code>는 열 우선이라 첫 열이 (1, 2). 행렬 × 벡터 결과 = (70, 100)을 직접 손으로 맞춰 보기</p>
+  </article>
+
+  <article>
+    <h3>한정자 (qualifier)</h3>
+    <p>형태: <b>한정자 + 자료형 + 변수명</b>. 예 <code>in vec3 position;</code></p>
+    <div class="tbl"><table>
+      <tr><th>한정자</th><th>뜻</th></tr>
+      <tr><td><code>const</code></td><td>상수, 실행 중 변경 방지</td></tr>
+      <tr><td><code>in</code></td><td>입력. 이전 스테이지에서 들어옴. 읽기만. 기본 한정자</td></tr>
+      <tr><td><code>out</code></td><td>출력. 다음 스테이지로 보냄. <b>연결되는 in/out은 같은 이름</b></td></tr>
+      <tr><td><code>uniform</code></td><td>CPU 응용 프로그램 → GPU 셰이더로 전달. 모든 셰이더 공통 <b>읽기 전용 전역</b>. 다시 설정할 때까지 값 유지</td></tr>
+      <tr><td><code>layout(location = 0)</code></td><td>입출력 변수 번호 지정. 버퍼 속성 순서와 맞춤</td></tr>
+    </table></div>
+<pre class="code"><code>// vertex shader
+#version 330 core
+layout (location = 0) in vec3 vPos;
+layout (location = 1) in vec3 vColor;
+out vec3 outColor;                     // fragment로 보냄
+void main() {
+    gl_Position = vec4(vPos, 1.0);     // 내장 변수, vec4
+    outColor = vColor;
+}
+// fragment shader
+#version 330 core
+in vec3 outColor;                      // vertex의 out과 같은 이름
+out vec4 FragColor;                    // 프레임버퍼로
+void main() { FragColor = vec4(outColor, 1.0); }</code></pre>
+<pre class="code"><code>// uniform으로 색 보내기  응용 프로그램
+glUseProgram(shaderProgram);
+int loc = glGetUniformLocation(shaderProgram, "outColor");  // 못 찾으면 -1
+glUniform4f(loc, r, g, b, 1.0);
+// 행렬은 glUniformMatrix4fv</code></pre>
+    <div class="tbl"><table>
+      <tr><th>내장 변수</th><th>셰이더</th><th>뜻</th></tr>
+      <tr><td><code>gl_Position</code></td><td>Vertex</td><td>정점의 최종 위치, vec4</td></tr>
+      <tr><td><code>gl_VertexID</code></td><td>Vertex</td><td>현재 정점 번호 int. glDrawArrays로 3개면 0, 1, 2</td></tr>
+      <tr><td><code>gl_FragCoord</code></td><td>Fragment</td><td>현재 프래그먼트의 화면 좌표, vec4</td></tr>
+      <tr><td><code>gl_FrontFacing</code></td><td>Fragment</td><td>앞면에서 생겼는지 bool</td></tr>
+    </table></div>
+    <p>내장 함수: <code>sin cos pow sqrt abs max min clamp mix step smoothstep length distance dot cross normalize</code>. <code>mix(a, b, t) = a + t(b − a)</code>.</p>
+  </article>
+
+  <article>
+    <h3>셰이더 프로그램 만들기 10단계 ★</h3>
+    <p class="core">셰이더 객체 만들기(생성 → 소스 → 컴파일) × 2 → 프로그램(생성 → 붙이기 → 링크) → 활성화</p>
+<pre class="code"><code>vertexShader = glCreateShader(GL_VERTEX_SHADER);          // 1 생성
+glShaderSource(vertexShader, 1, &source, NULL);           // 2 소스 지정
+glCompileShader(vertexShader);                            // 3 컴파일
+fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);      // 4
+glShaderSource(fragmentShader, 1, &source, NULL);         // 5
+glCompileShader(fragmentShader);                          // 6
+GLuint shaderID = glCreateProgram();                      // 7 프로그램 생성
+glAttachShader(shaderID, vertexShader);                   // 8 붙이기
+glAttachShader(shaderID, fragmentShader);
+glLinkProgram(shaderID);                                  // 9 링크
+glDeleteShader(vertexShader);                             // 링크 후엔 필요 없음
+glDeleteShader(fragmentShader);
+glUseProgram(shaderID);                                   // 10 사용</code></pre>
+    <ul>
+      <li>셰이더 = 하나의 단계 코드, <b>셰이더 프로그램 = 여러 셰이더를 링크한 실행 프로그램</b>.</li>
+      <li>에러 확인: <code>glGetShaderiv(shader, GL_COMPILE_STATUS, &result)</code> → 실패면 <code>glGetShaderInfoLog</code>. 프로그램은 <code>glGetProgramiv(id, GL_LINK_STATUS, ...)</code> → <code>glGetProgramInfoLog</code>.</li>
+      <li>셰이더 코드는 C++에서 문자열로 읽어(<code>filetobuf</code>) <b>실행 시점에 GPU로 보내 컴파일</b>.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h3>그리기 함수와 프리미티브</h3>
+<pre class="code"><code>glDrawArrays(GLenum mode, GLint first, GLsizei count);
+glDrawArrays(GL_TRIANGLES, 0, 3);   // 0번부터 정점 3개로 삼각형
+glDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices);
+glPointSize(5.0f);  glLineWidth(2.0f);
+glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // GL_POINT / GL_LINE / GL_FILL</code></pre>
+    <div class="tbl"><table>
+      <tr><th>종류</th><th>mode</th></tr>
+      <tr><td>점</td><td><code>GL_POINTS</code></td></tr>
+      <tr><td>선</td><td><code>GL_LINES</code>(2개씩 끊어서), <code>GL_LINE_STRIP</code>(이어서), <code>GL_LINE_LOOP</code>(이어서 처음과 닫음)</td></tr>
+      <tr><td>삼각형</td><td><code>GL_TRIANGLES</code>(3개씩), <code>GL_TRIANGLE_STRIP</code>, <code>GL_TRIANGLE_FAN</code></td></tr>
+    </table></div>
+    <p>같은 정점 3개라도 <code>GL_POINTS</code>면 점 3개, <code>GL_LINE_LOOP</code>면 삼각형 테두리, <code>GL_TRIANGLES</code>면 채운 삼각형.</p>
+  </article>
+</section>
+
+<!-- 지엘2 VBO -->
+<section class="ch" id="vbo">
+  <h2><span class="no">지엘2-2</span>점, 삼각형, VBO, VAO, EBO</h2>
+  <p class="chsub">셰이더에 고정 → 버퍼로 보내기 → 속성 2개 → uniform → 인덱스</p>
+
+  <article>
+    <h3>셰이더 안에 좌표 고정 (점, 삼각형)</h3>
+<pre class="code"><code>// 점: vertex.glsl
+gl_Position = vec4(0.5, 0.0, 0.0, 1.0);
+// 삼각형: gl_VertexID로 배열에서 골라 씀
+const vec4 vertex[3] = vec4[3](vec4(-0.25, -0.25, 0.5, 1.0),
+                               vec4( 0.25, -0.25, 0.5, 1.0),
+                               vec4( 0.0,   0.25, 0.5, 1.0));
+gl_Position = vertex[gl_VertexID];
+// fragment.glsl
+out vec4 color;
+color = vec4(1.0, 0.0, 0.0, 1.0);   // 빨강 고정</code></pre>
+    <p>실제로는 정점이 많으니 좌표와 색을 셰이더에 고정하지 않고 <b>GPU 메모리(VBO)</b>에 따로 저장한다.</p>
+  </article>
+
+  <article>
+    <h3>VBO와 VAO</h3>
+    <p class="core">VBO = 데이터 저장, VAO = 데이터 연결 방법 저장. VAO에는 정점 데이터가 직접 들어가지 않는다</p>
+    <ul>
+      <li><b>Vertex Attribute</b>: 정점 하나가 가진 데이터 종류(위치, 색, 법선, 텍스처 좌표). <code>layout(location)</code>으로 번호.</li>
+      <li><b>VBO</b>: 정점 데이터를 GPU 메모리에 저장하는 버퍼. 하나에 여러 속성 가능.</li>
+      <li><b>VAO</b>: 어떤 VBO의 어떤 형식 데이터를 어느 location이 가져갈지. 보통 Mesh 하나에 VAO 하나.</li>
+      <li><b>바인드</b>: 앞으로 작업할 객체를 현재 대상으로 지정.</li>
+    </ul>
+<pre class="code"><code>glGenVertexArrays(1, &VAO);
+glBindVertexArray(VAO);
+glGenBuffers(1, &VBO);
+glBindBuffer(GL_ARRAY_BUFFER, VBO);
+glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPosition), vertexPosition, GL_STATIC_DRAW);
+glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+glEnableVertexAttribArray(0);
+// 그릴 때
+glUseProgram(shaderProgramID);
+glBindVertexArray(VAO);
+glDrawArrays(GL_TRIANGLES, 0, 3);</code></pre>
+    <div class="tbl"><table>
+      <tr><th><code>glVertexAttribPointer</code> 인자</th><th>뜻</th></tr>
+      <tr><td>index</td><td>속성 번호 = 셰이더 <code>layout(location = 0)</code></td></tr>
+      <tr><td>size</td><td>성분 수. vec3면 3</td></tr>
+      <tr><td>type</td><td><code>GL_FLOAT</code></td></tr>
+      <tr><td>normalized</td><td>[0, 1]로 정규화할지. 보통 <code>GL_FALSE</code></td></tr>
+      <tr><td><b>stride</b></td><td>다음 정점의 같은 속성까지 바이트 수. 빈틈없이 한 속성만이면 0도 가능</td></tr>
+      <tr><td><b>pointer</b></td><td>속성이 시작하는 오프셋(바이트)</td></tr>
+    </table></div>
+    <div class="tbl"><table>
+      <tr><th>usage</th><th>언제</th></tr>
+      <tr><td><code>GL_STATIC_DRAW</code></td><td>한 번 올리고 안 바뀜</td></tr>
+      <tr><td><code>GL_DYNAMIC_DRAW</code></td><td>자주 바뀜(애니메이션)</td></tr>
+      <tr><td><code>GL_STREAM_DRAW</code></td><td>그릴 때마다 바뀜</td></tr>
+    </table></div>
+    <p>일부만 바꾸기: <code>glBufferSubData(GL_ARRAY_BUFFER, offset, size, data)</code>.</p>
+  </article>
+
+  <article>
+    <h3>속성 2개: stride와 offset 계산 ★</h3>
+    <p class="core">float 하나 = 4바이트. 위치 xyz = 12바이트. 위치+색 한 배열 = 정점당 24바이트</p>
+    <h4>① 한 배열에 섞어 저장 (x y z r g b, x y z r g b …)</h4>
+<pre class="code"><code>glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);                  // 위치
+glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float))); // 색
+glEnableVertexAttribArray(0);
+glEnableVertexAttribArray(1);</code></pre>
+    <div class="tbl"><table>
+      <tr><th>속성</th><th>stride</th><th>offset</th></tr>
+      <tr><td>위치</td><td class="num">24</td><td class="num">0</td></tr>
+      <tr><td>색</td><td class="num">24</td><td class="num">12</td></tr>
+    </table></div>
+    <h4>② 따로 저장 (VBO 2개)</h4>
+<pre class="code"><code>glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+glBufferData(GL_ARRAY_BUFFER, sizeof(triShape), triShape, GL_STATIC_DRAW);
+glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);    // stride 12 또는 0, offset 0
+glEnableVertexAttribArray(0);
+glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
+glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+glEnableVertexAttribArray(1);</code></pre>
+    <ul>
+      <li>속성 포인터는 <b>그때 GL_ARRAY_BUFFER에 바인딩된 VBO</b>를 가리킨다. 그래서 속성마다 해당 VBO를 먼저 바인드.</li>
+      <li>layout을 안 쓰면 <code>glGetAttribLocation(program, "vPos")</code>로 번호를 얻는다(못 찾으면 음수).</li>
+    </ul>
+    <p class="warn">위치 + 색 + 법선 + 텍스처(xyz rgb nxnynz st)면 정점당 float 11개 = stride 44, 법선 offset 24, 텍스처 offset 36</p>
+  </article>
+
+  <article>
+    <h3>uniform으로 프래그먼트 셰이더에 색 직접 보내기</h3>
+<pre class="code"><code>// fragment.glsl
+uniform vec4 vColor;
+out vec4 FragColor;
+void main() { FragColor = vColor; }
+// drawScene
+int vColorLocation = glGetUniformLocation(shaderProgramID, "vColor");
+glUseProgram(shaderProgramID);
+glUniform4f(vColorLocation, 1.0f, 0.0f, 0.0f, 1.0f);
+glBindVertexArray(VAO);
+glDrawArrays(GL_TRIANGLES, 0, 3);</code></pre>
+    <p>attribute는 <b>정점마다 다른 값</b>, uniform은 <b>그리기 한 번에 모두 같은 값</b>.</p>
+  </article>
+
+  <article>
+    <h3>EBO (Element Buffer Object)</h3>
+    <p class="core">정점의 인덱스(사용 순서)를 저장해 중복 정점을 줄이고 재사용. VBO = 정점 데이터, EBO = 사용 순서</p>
+<pre class="code"><code>float vPositionList[] = {
+     0.5f,  0.5f, 0.0f,   // 0 우측 상단
+     0.5f, -0.5f, 0.0f,   // 1 우측 하단
+    -0.5f, -0.5f, 0.0f,   // 2 좌측 하단
+    -0.5f,  0.5f, 0.0f }; // 3 좌측 상단
+unsigned int index[] = { 0, 1, 3,    // 첫 번째 삼각형
+                         1, 2, 3 };  // 두 번째 삼각형
+glGenBuffers(1, &EBO);
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(index), index, GL_STATIC_DRAW);
+// 그릴 때
+glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);  // 인덱스 6개</code></pre>
+    <ul>
+      <li>사각형 = 삼각형 2개 = 정점 6개지만 2개가 중복이라 <b>4개</b>로 가능.</li>
+      <li><code>glDrawElements</code>의 count는 <b>인덱스 개수</b>(정점 개수 아님). type은 <code>GL_UNSIGNED_BYTE / SHORT / INT</code>.</li>
+      <li>오각형: glDrawArrays면 정점 7개 + 호출 3번, glDrawElements면 정점 5개 + 인덱스 9개(<code>0,1,2, 2,3,0, 0,3,4</code>) 한 번.</li>
+    </ul>
+  </article>
+</section>
+
+<!-- 지엘3 모델링 -->
+<section class="ch" id="model">
+  <h2><span class="no">지엘3-1</span>GLM, 동차좌표, 모델링 변환</h2>
+  <p class="chsub">행렬 곱 순서가 제일 많이 틀리는 곳</p>
+
+  <article>
+    <h3>GLM</h3>
+    <ul>
+      <li>GLSL 기반 header-only C++ 수학 라이브러리. 모던 OpenGL은 변환, 카메라 함수를 안 주니 GLM 사용. <code>glm::</code>을 붙여 호출.</li>
+      <li><b>열 우선</b>. 행렬 곱에서 벡터에 적용되는 순서는 <b>오른쪽부터</b>: <code>M = T × R × S</code> → S → R → T.</li>
+      <li><code>glm::mat4(1.0f)</code>로 꼭 초기화. 0.9.9부터 <b>기본 생성은 0 행렬</b>.</li>
+      <li>각도는 <b>라디안</b>: <code>glm::radians(30.0f)</code>.</li>
+      <li>셰이더로 보내기: <code>glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(m))</code> 또는 <code>&m[0][0]</code>. 인자는 위치, 개수 1, 전치 안 함, 포인터.</li>
+    </ul>
+<pre class="code"><code>glm::translate(M, glm::vec3(tx, ty, tz));
+glm::rotate(M, glm::radians(angle), glm::vec3(0, 0, 1));   // 축
+glm::scale(M, glm::vec3(sx, sy, sz));
+glm::ortho(left, right, bottom, top, near, far);
+glm::perspective(fovy, aspect, near, far);
+glm::lookAt(eye, at, up);</code></pre>
+  </article>
+
+  <article>
+    <h3>동차좌표 ★</h3>
+    <p class="core">(x, y, z) → (x, y, z, w). <b>w = 1이면 점, w = 0이면 벡터</b>. 이동·회전·신축을 모두 행렬 곱 하나로 통일</p>
+    <ul>
+      <li>벡터 공간: 크기와 방향만, 위치 무관. 어파인 공간: 점(위치)과 벡터를 구분.</li>
+      <li>이동 행렬을 점에 곱하면 이동, <b>벡터에 곱하면 그대로</b>(w = 0이라 tx가 안 더해짐).</li>
+      <li>w ≠ 0이면 실제 좌표 = (x/w, y/w, z/w). (1, 2, 4, 1), (2, 4, 8, 2), (5, 10, 20, 5)는 모두 <b>(1, 2, 4)</b>.</li>
+    </ul>
+<pre><code>T = | 1 0 0 tx |    T·(x, y, z, 1) = (x+tx, y+ty, z+tz, 1)   점 이동
+    | 0 1 0 ty |    T·(x, y, z, 0) = (x, y, z, 0)            벡터는 안 바뀜
+    | 0 0 1 tz |
+    | 0 0 0 1  |</code></pre>
+  </article>
+
+  <article>
+    <h3>기본 기하변환</h3>
+    <div class="tbl"><table>
+      <tr><th>변환</th><th>식</th><th>행렬</th></tr>
+      <tr><td>이동</td><td>(x+dx, y+dy, z+dz)</td><td>마지막 열에 dx, dy, dz</td></tr>
+      <tr><td>신축</td><td>(sx·x, sy·y, sz·z)</td><td>대각선에 sx, sy, sz</td></tr>
+      <tr><td>z축 회전</td><td>(x cosθ − y sinθ, x sinθ + y cosθ, z)</td><td>왼쪽 위 2×2에 cos −sin / sin cos</td></tr>
+    </table></div>
+    <ul>
+      <li>신축률이 같으면 균등, 다르면 비균등 크기 변환.</li>
+      <li>신축과 회전은 <b>원점 기준</b>이라 물체가 원점에서 떨어져 있으면 위치도 같이 움직인다.</li>
+    </ul>
+    <div class="calc">예) 점 (1, 0, 0)을 z축으로 90° 회전 → (1·cos90 − 0·sin90, 1·sin90 + 0·cos90, 0) = <b>(0, 1, 0)</b><br>
+      예) 점 (2, 1, 3)을 이동 (0.1, 0.2, 0.4) → <b>(2.1, 1.2, 3.4)</b><br>
+      예) 점 (2, 1, 3)을 신축 (0.5, 1.5, 1.0) → <b>(1.0, 1.5, 3.0)</b></div>
+  </article>
+
+  <article>
+    <h3>좌표계 변환 전체 흐름</h3>
+    <div class="flow"><span>모델 좌표</span><i>모델링 →</i><span>월드 좌표</span><i>뷰잉 →</i><span>뷰(카메라) 좌표</span><i>투영 →</i><span>클립 좌표</span><i>원근 나누기 →</i><span>NDC [-1, 1]</span><i>뷰포트 →</i><span>화면 좌표</span></div>
+    <p class="core">Vclip = Mprojection × Mview × Mmodel × Vlocal</p>
+<pre class="code"><code>gl_Position = projection * view * model * vec4(vPos, 1.0);   // 변환은 ← 방향으로 적용</code></pre>
+    <ul>
+      <li>모델링: 물체를 이동, 신축, 회전. <b>순서에 따라 결과가 다름</b>. 물체를 뒤로 = 좌표축을 앞으로.</li>
+      <li>뷰잉: 관측자 시점(카메라) 설정. 기본 관측점 (0, 0, 0), <b>-z가 모니터 안쪽</b>.</li>
+      <li>투영: 3D를 2D 평면으로.</li>
+      <li>뷰포트: 출력 위치와 크기. <code>glViewport</code>로.</li>
+      <li>원근 나누기, NDC 변환은 OpenGL이 자동.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h3>모델링 변환 곱셈 순서 ★★</h3>
+    <p class="core">P' = Mn ··· M2 M1 P. 정점에 가까운 <b>오른쪽 행렬부터 먼저</b> 적용</p>
+    <div class="tbl"><table>
+      <tr><th>코드</th><th>행렬</th><th>실제 순서</th><th>결과</th></tr>
+      <tr><td><code>TR = Tx * Rz</code></td><td>T R P</td><td><b>회전 → 이동</b></td><td>제자리에서 45° 돈 뒤 x로 0.5 이동</td></tr>
+      <tr><td><code>TR = Rz * Tx</code></td><td>R T P</td><td><b>이동 → 회전</b></td><td>x로 0.5 간 뒤 원점 기준으로 45° 돌아 대각선 위치로</td></tr>
+    </table></div>
+<pre class="code"><code>// 한 행렬에 누적해도 같음: 코드에 쓴 순서의 반대로 적용
+glm::mat4 TR = glm::mat4(1.0f);
+TR = glm::translate(TR, glm::vec3(0.5, 0.0, 0.0));               // TR = T
+TR = glm::rotate(TR, glm::radians(45.0f), glm::vec3(0, 0, 1));   // TR = T * R
+// → 정점에는 R 먼저, T 나중. 회전 후 이동 (Tx * Rz와 같음)</code></pre>
+    <div class="calc">예) 점 (1, 0, 0), T = x로 1 이동, R = z축 90°<br>
+      T·R·P: 먼저 회전 (0, 1, 0) → 이동 <b>(1, 1, 0)</b><br>
+      R·T·P: 먼저 이동 (2, 0, 0) → 회전 <b>(0, 2, 0)</b></div>
+    <p class="warn"><code>glm::translate(M, …)</code>는 M × T를 돌려준다. 그래서 코드에 <b>나중에 쓴 변환이 정점에 먼저</b> 적용된다. 공전(이동한 뒤 원점 기준 회전)은 코드에 rotate를 먼저, translate를 나중에 쓴다</p>
+  </article>
+
+  <article>
+    <h3>은면 제거: 깊이 검사와 컬링</h3>
+<pre class="code"><code>glEnable(GL_DEPTH_TEST);                               // 윈도우 생성 후
+glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);    // 매 프레임 깊이 버퍼도 지우기
+glEnable(GL_CULL_FACE);
+glCullFace(GL_BACK);       // GL_FRONT / GL_BACK / GL_FRONT_AND_BACK
+glFrontFace(GL_CCW);       // 반시계가 앞면 (기본값)</code></pre>
+    <div class="tbl"><table>
+      <tr><th></th><th>깊이 테스트</th><th>면 컬링</th></tr>
+      <tr><td>기능</td><td><code>GL_DEPTH_TEST</code></td><td><code>GL_CULL_FACE</code></td></tr>
+      <tr><td>목적</td><td>겹친 물체 중 무엇이 앞인지</td><td>안 보이는 방향의 면 제거</td></tr>
+      <tr><td>기준</td><td>깊이 값</td><td>앞면 / 뒷면 (winding 방향)</td></tr>
+      <tr><td>처리 대상</td><td>프래그먼트</td><td>프리미티브</td></tr>
+      <tr><td>효과</td><td>올바른 화면</td><td>성능 향상</td></tr>
+      <tr><td>버퍼</td><td>Depth Buffer</td><td>없음</td></tr>
+    </table></div>
+    <ul>
+      <li>대부분의 상태(라이팅, 텍스처, 은면 제거…)는 <b>기본 비활성화</b>. <code>glEnable / glDisable / glIsEnabled</code>.</li>
+      <li>은면 제거를 안 하면 <b>그린 순서대로</b> 보인다.</li>
+      <li>기본: <b>반시계(CCW)가 앞면</b>, 뒷면을 컬링.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h3>3D 객체: GLU Quadric, OBJ</h3>
+<pre class="code"><code>GLUquadricObj* qobj = gluNewQuadric();
+gluQuadricDrawStyle(qobj, GLU_LINE);    // GLU_FILL / LINE / SILHOUETTE / POINT
+gluQuadricNormals(qobj, GLU_SMOOTH);    // GLU_NONE / FLAT / SMOOTH
+gluQuadricOrientation(qobj, GLU_OUTSIDE);
+gluSphere(qobj, 1.5, 50, 50);           // 반지름, slices, stacks
+gluCylinder(qobj, base, top, height, slices, stacks);  // top 0이면 원뿔
+gluDisk(qobj, inner, outer, slices, loops);            // inner > 0이면 도넛</code></pre>
+    <ul>
+      <li>slices, stacks가 클수록 매끈.</li>
+      <li>OBJ: Wavefront 형식 텍스트 파일. <code>v</code> 정점, <code>vt</code> 텍스처 좌표, <code>vn</code> 법선, <code>f</code> 면, <code>g</code> 그룹, <code>#</code> 주석. 재질은 .mtl.</li>
+      <li><code>f v/vt/vn</code>, 텍스처 생략하면 <code>f 7//1</code>처럼 슬래시 두 개.</li>
+      <li><b>OBJ 인덱스는 1부터</b>라 읽을 때 1을 빼서 0부터로.</li>
+      <li>읽기 순서: 정점, 면 개수 세기 → 그만큼 메모리 할당 → 다시 읽으며 채우기.</li>
+    </ul>
+  </article>
+</section>
+
+<!-- 지엘3 뷰 -->
+<section class="ch" id="view">
+  <h2><span class="no">지엘3-2</span>뷰잉, 투영, 뷰포트 변환</h2>
+  <p class="chsub">lookAt, ortho, perspective 인자와 의미</p>
+
+  <article>
+    <h3>뷰잉 변환</h3>
+    <p class="core">월드 좌표를 카메라를 원점으로 하는 뷰 공간으로. 기본 카메라는 (0, 0, 0)에서 <b>-z를 바라봄</b>, 오른쪽 +x, 위 +y</p>
+    <ul>
+      <li>카메라 이동 = 물체를 <b>반대로</b> 이동. 카메라를 오른쪽으로 = 객체를 왼쪽으로.</li>
+      <li><code>view = glm::translate(view, vec3(0, 0, -3))</code>: 모든 객체를 z로 -3 = 카메라를 <b>+z로 3</b> 옮긴 효과.</li>
+    </ul>
+<pre class="code"><code>glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f),   // Eye 카메라 위치
+                             glm::vec3(0.0f, 0.0f, 0.0f),   // At 바라보는 점
+                             glm::vec3(0.0f, 1.0f, 0.0f));  // Up 대부분 y축
+gl_Position = viewTransform * modelTransform * vec4(vPos, 1.0);</code></pre>
+    <h4>카메라 축 만들기</h4>
+    <ul>
+      <li>forward f = (At − Eye) / |At − Eye|</li>
+      <li>right r = (f × Up) / |f × Up|</li>
+      <li>실제 up u = r × f</li>
+      <li>Mview = R · T. T는 −Eye만큼 이동, R의 행은 r, u, −f.</li>
+    </ul>
+<pre class="code"><code>glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);          // 바라보는 반대 +z
+glm::vec3 cameraRight = glm::normalize(glm::cross(worldUp, cameraDirection));  // +x
+glm::vec3 cameraUp = glm::normalize(glm::cross(cameraDirection, cameraRight)); // +y</code></pre>
+    <div class="calc">예) Eye (0, 0, 5), At (0, 0, 0): f = (0, 0, −5)/5 = <b>(0, 0, −1)</b>, r = f × (0, 1, 0) = <b>(1, 0, 0)</b>, u = r × f = <b>(0, 1, 0)</b></div>
+  </article>
+
+  <article>
+    <h3>투영 변환</h3>
+    <div class="tbl"><table>
+      <tr><th></th><th>직각 투영 (ortho)</th><th>원근 투영 (perspective)</th></tr>
+      <tr><td>투영 볼륨</td><td>직육면체</td><td>피라미드 모양 <b>절두체(Frustum)</b></td></tr>
+      <tr><td>크기</td><td>거리와 상관없이 <b>일정</b>, 원근감 없음</td><td><b>가까우면 크게, 멀면 작게</b></td></tr>
+      <tr><td>함수</td><td><code>ortho(left, right, bottom, top, near, far)</code></td><td><code>perspective(fovy, aspect, near, far)</code></td></tr>
+    </table></div>
+    <ul>
+      <li>볼륨 밖은 <b>클리핑</b>.</li>
+      <li>fovy: <b>수직</b> 시야각, 라디안. aspect = <b>width / height</b>. near, far는 <b>항상 양수</b>, 0 &lt; near &lt; far.</li>
+      <li>보통 초기화에서 한 번. 창 크기가 바뀌면 aspect 다시 계산.</li>
+      <li>투영 후 클립 좌표 → OpenGL이 자동으로 원근 나누기 → NDC. 직접 −1~1로 정규화할 필요 없음.</li>
+    </ul>
+<pre class="code"><code>projection = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, -100.0f, 100.0f);
+projection = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
+projection = glm::perspective(glm::radians(45.0f), (float)w / (float)h, 0.1f, 100.0f);</code></pre>
+  </article>
+
+  <article>
+    <h3>뷰포트 변환과 전체 적용</h3>
+<pre class="code"><code>glViewport(0, 0, 800, 600);   // 윈도우 전체
+glViewport(0, 0, 125, 125);   // 왼쪽 아래 125×125 영역에만 출력
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    glViewport(0, 0, width, height);   // 필요하면 perspective aspect도 다시
+}
+
+// vertex shader
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+gl_Position = projection * view * model * vec4(vPos, 1.0);</code></pre>
+    <p class="warn">셰이더의 uniform 이름과 <code>glGetUniformLocation</code>의 문자열이 같아야 한다. 곱 순서는 <b>P × V × M × v</b></p>
+  </article>
+</section>
+
+<!-- 4 윈도우 뷰포트 -->
+<section class="ch" id="clip">
+  <h2><span class="no">4</span>2차원 윈도우와 뷰포트, 클리핑</h2>
+  <p class="chsub">계산 문제가 나오기 좋은 단원</p>
+
+  <article class="hot" id="h-wv">
+    <h3>뷰잉 파이프라인, 윈도우와 뷰포트 <span class="hottag">출제 뷰포트 계산</span></h3>
+    <div class="flow"><span>모델 좌표계</span><i>→</i><span>월드 좌표계</span><i>→</i><span>뷰포트 좌표계</span><i>→</i><span>정규 좌표계</span><i>→</i><span>장치 좌표계</span></div>
+    <ul>
+      <li><b>윈도우</b>: 표시하려고 선택한 세계 좌표 영역. "<b>무엇을</b> 보여줄지".</li>
+      <li><b>뷰포트</b>: 윈도우가 사상되는 출력 장치 영역. "<b>어디에</b> 보여줄지".</li>
+      <li>효과: <b>Zooming</b>(확대 축소), <b>Panning</b>(보여주는 영역 평행 이동), <b>Multi viewport</b>(여러 화면).</li>
+    </ul>
+    <p class="core">xv = xvL + (xw − xwL)·sx, sx = (xvR − xvL) / (xwR − xwL)<br>yv = yvB + (yw − ywB)·sy, sy = (yvT − yvB) / (ywT − ywB)</p>
+    <p>기호 읽는 법: <b>w</b>는 윈도우, <b>v</b>는 뷰포트. 끝 글자 <b>L</b> 왼쪽(Left), <b>R</b> 오른쪽(Right), <b>B</b> 아래(Bottom), <b>T</b> 위(Top)</p>
+    <div class="tbl"><table>
+      <tr><th>기호</th><th>뜻</th><th>예제 값</th></tr>
+      <tr><td>xw, yw</td><td>바꿀 점의 <b>윈도우 안</b> 좌표 (입력)</td><td class="num">(2, 3)</td></tr>
+      <tr><td>xv, yv</td><td>바뀐 점의 <b>뷰포트 안</b> 좌표 (답)</td><td class="num">(17, 25)</td></tr>
+      <tr><td>xwL, xwR</td><td>윈도우의 왼쪽 끝 x, 오른쪽 끝 x (x 최소, 최대)</td><td class="num">1, 11</td></tr>
+      <tr><td>ywB, ywT</td><td>윈도우의 아래 끝 y, 위 끝 y (y 최소, 최대)</td><td class="num">0, 10</td></tr>
+      <tr><td>xvL, xvR</td><td>뷰포트의 왼쪽 끝 x, 오른쪽 끝 x</td><td class="num">10, 80</td></tr>
+      <tr><td>yvB, yvT</td><td>뷰포트의 아래 끝 y, 위 끝 y</td><td class="num">10, 60</td></tr>
+      <tr><td>sx, sy</td><td>배율 = 뷰포트 너비 ÷ 윈도우 너비, 뷰포트 높이 ÷ 윈도우 높이</td><td class="num">7, 5</td></tr>
+    </table></div>
+    <p>뜻으로 읽으면: 윈도우 왼쪽 끝에서 <b>얼마나 떨어져 있나</b>(xw − xwL)를 구해서, <b>배율</b>(sx)만큼 늘린 다음, 뷰포트 왼쪽 끝(xvL)에 <b>더한다</b>. y도 아래 끝 기준으로 똑같이.</p>
+    <p class="note">윈도우 (1, 0)~(11, 10)처럼 두 점으로 주면 앞 점이 왼쪽 아래 (xwL, ywB), 뒤 점이 오른쪽 위 (xwR, ywT)예요.</p>
+    <div class="calc">예) 윈도우 (1, 0)~(11, 10) → 뷰포트 (10, 10)~(80, 60), 사각형 (2, 3)~(8, 7)<br>
+      sx = (80 − 10) / (11 − 1) = 70 / 10 = <b>7</b>, sy = (60 − 10) / (10 − 0) = 50 / 10 = <b>5</b><br>
+      (2, 3): xv = 10 + (2 − 1)·7 = 17, yv = 10 + (3 − 0)·5 = 25 → <b>(17, 25)</b><br>
+      (8, 7): xv = 10 + (8 − 1)·7 = 59, yv = 10 + (7 − 0)·5 = 45 → <b>(59, 45)</b><br>
+      변환 후 사각형 (17, 25)~(59, 45)</div>
+    <p class="note">슬라이드엔 문제만 있고 답은 없어서 공식대로 직접 푼 값이에요.</p>
+  </article>
+
+  <article>
+    <h3>클리핑과 점 클리핑</h3>
+    <ul>
+      <li>클리핑: 출력 영역 밖의 객체나 그 일부를 제거.</li>
+      <li><b>월드 좌표 클리핑</b>: 윈도우 밖을 먼저 지우고 안쪽만 뷰포트로. <b>뷰포트 클리핑</b>: 전부 매핑한 뒤 뷰포트 밖을 지움. 결과 화면은 같다.</li>
+      <li>점 P(x, y)는 <b>xL ≤ x ≤ xR 이고 yB ≤ y ≤ yT</b>이면 그린다.</li>
+    </ul>
+  </article>
+
+  <article class="hot" id="h-cs">
+    <h3>Cohen-Sutherland 선 클리핑 ★ <span class="hottag">출제 클리핑</span></h3>
+    <p class="core">윈도우 기준으로 9개 영역, 4비트 영역 코드. 비트1 왼쪽, 비트2 오른쪽, 비트3 아래, 비트4 위</p>
+    <p>코드를 <b>비트4 비트3 비트2 비트1</b> 순서(위 아래 오른 왼)로 쓰면:</p>
+    <div class="tbl"><table class="grid9">
+      <tr><td>1001</td><td>1000</td><td>1010</td></tr>
+      <tr><td>0001</td><td class="in">0000</td><td>0010</td></tr>
+      <tr><td>0101</td><td>0100</td><td>0110</td></tr>
+    </table></div>
+    <div class="tbl"><table>
+      <tr><th>경우</th><th>판단</th></tr>
+      <tr><td>① 양 끝 모두 0000</td><td>완전히 안 → <b>그대로 그림</b></td></tr>
+      <tr><td>② 한쪽만 0000</td><td>일부만 안 → 교차점을 구해 <b>바깥 끝점을 교차점으로 바꿈</b></td></tr>
+      <tr><td>③ 둘 다 0 아님, AND ≠ 0</td><td>같은 쪽 바깥 → <b>완전히 밖, 버림</b></td></tr>
+      <tr><td>④ 둘 다 0 아님, AND = 0</td><td>윈도우를 지날 수도 있음 → <b>교차점 구해 다시 검사</b></td></tr>
+    </table></div>
+    <p class="note">슬라이드의 ①~④ 결론은 빈칸으로 되어 있어서 알고리즘의 표준 결론을 채웠어요.</p>
+    <p><b>교차점</b> (m = (y2 − y1) / (x2 − x1))</p>
+    <ul>
+      <li>수직 경계 x = xL 또는 xR: <b>y = y1 + m(x − x1)</b></li>
+      <li>수평 경계 y = yB 또는 yT: <b>x = x1 + (y − y1) / m</b></li>
+    </ul>
+    <div class="tbl"><table>
+      <tr><th>기호</th><th>뜻</th></tr>
+      <tr><td>(x1, y1), (x2, y2)</td><td>자를 선분의 두 끝점</td></tr>
+      <tr><td>m</td><td>선분의 기울기</td></tr>
+      <tr><td>xL, xR</td><td>윈도우 왼쪽 경계 x, 오른쪽 경계 x (예제 −10, 10)</td></tr>
+      <tr><td>yB, yT</td><td>윈도우 아래 경계 y, 위 경계 y (예제 −10, 10)</td></tr>
+      <tr><td>x, y</td><td>수직 경계면 x에 경계값(xL 또는 xR)을 넣어 y를 구하고, 수평 경계면 y에 경계값(yB 또는 yT)을 넣어 x를 구함. 그게 교차점</td></tr>
+    </table></div>
+    <div class="calc">예) 윈도우 −10 ≤ x, y ≤ 10, P1(−15, −15), P2(12, 8)<br>
+      코드: P1은 왼쪽 + 아래 → <b>0101</b>, P2는 오른쪽 → <b>0010</b>. AND = 0000 → ④ 교차점 계산<br>
+      m = (8 + 15) / (12 + 15) = 23 / 27 ≈ 0.852<br>
+      P1을 왼쪽 경계 x = −10에: y = −15 + 0.852·5 ≈ −10.74 → 아직 아래(&lt; −10)라 코드 0100<br>
+      다시 아래 경계 y = −10에: x = −15 + (−10 + 15) / 0.852 ≈ <b>−9.13</b> → (−9.13, −10)<br>
+      P2를 오른쪽 경계 x = 10에: y = 8 + 0.852·(10 − 12) ≈ <b>6.30</b> → (10, 6.30)<br>
+      결과 선분 <b>(−9.13, −10) ~ (10, 6.30)</b></div>
+  </article>
+
+  <article class="hot" id="h-lb">
+    <h3>Liang-Barsky 선 클리핑 ★ <span class="hottag">출제 클리핑</span></h3>
+    <p class="core">매개변수 방정식 P(u) = P1 + (P2 − P1)u, 0 ≤ u ≤ 1. u의 유효 구간 [ustart, uend]를 구한다</p>
+    <ul>
+      <li>x = x1 + dx·u, y = y1 + dy·u (dx = x2 − x1, dy = y2 − y1). u = 0이면 P1, u = 1이면 P2.</li>
+      <li>조건 u·pk ≤ qk, k = 1~4:</li>
+    </ul>
+    <div class="tbl"><table>
+      <tr><th>k</th><th>경계</th><th>pk</th><th>qk</th></tr>
+      <tr><td>1</td><td>left</td><td>−dx</td><td>x1 − xmin</td></tr>
+      <tr><td>2</td><td>right</td><td>dx</td><td>xmax − x1</td></tr>
+      <tr><td>3</td><td>bottom</td><td>−dy</td><td>y1 − ymin</td></tr>
+      <tr><td>4</td><td>top</td><td>dy</td><td>ymax − y1</td></tr>
+    </table></div>
+    <ul>
+      <li><b>pk = 0</b>: 그 경계와 평행. qk &lt; 0이면 밖이라 안 그림, qk ≥ 0이면 다른 경계에서 판단.</li>
+      <li><b>pk &lt; 0</b>: 밖 → 안으로 들어감. <b>ustart = max(0, qk/pk)</b></li>
+      <li><b>pk &gt; 0</b>: 안 → 밖으로 나감. <b>uend = min(1, qk/pk)</b></li>
+      <li>uend &lt; ustart면 <b>버림</b>. 아니면 새 끝점 (x1 + ustart·dx, y1 + ustart·dy), (x1 + uend·dx, y1 + uend·dy).</li>
+    </ul>
+    <div class="calc">예 1) 윈도우 (5, 5)~(10, 10), P1(3, 8), P2(12, 2). dx = 9, dy = −6<br>
+      k1: p = −9, q = −2, u = 0.222 (p &lt; 0 → start)<br>
+      k2: p = 9, q = 7, u = 0.778 (end)<br>
+      k3: p = 6, q = 3, u = 0.5 (end)<br>
+      k4: p = −6, q = 2, u = −0.333 (start)<br>
+      ustart = max(0, 0.222, −0.333) = <b>2/9</b>, uend = min(1, 0.778, 0.5) = <b>0.5</b><br>
+      새 끝점 (3 + 9·2/9, 8 − 6·2/9) = <b>(5, 6.67)</b>, (3 + 4.5, 8 − 3) = <b>(7.5, 5)</b></div>
+    <div class="calc">예 2) 같은 윈도우, P1(8, 9), P2(2, 6). dx = −6, dy = −3<br>
+      k1: p = 6, q = 3, u = 0.5 (end) · k2: p = −6, q = 2, u = −0.333 (start)<br>
+      k3: p = 3, q = 4, u = 1.333 (end) · k4: p = −3, q = 1, u = −0.333 (start)<br>
+      ustart = <b>0</b>, uend = <b>0.5</b> → <b>(8, 9) ~ (5, 7.5)</b>. P1은 원래 안에 있어서 그대로</div>
+    <div class="tbl"><table>
+      <tr><th></th><th>Cohen-Sutherland</th><th>Liang-Barsky</th></tr>
+      <tr><td>방법</td><td>영역 코드</td><td>매개변수 방정식</td></tr>
+      <tr><td>핵심 연산</td><td>비트 연산 + 교차점 계산</td><td>부등식 + 매개변수 계산</td></tr>
+      <tr><td>특징</td><td>이해하기 쉬움</td><td>수학적으로 효율적</td></tr>
+      <tr><td>아이디어</td><td>코드로 선분 위치 판단</td><td>유효한 u 구간 결정</td></tr>
+    </table></div>
+  </article>
+
+  <article class="hot" id="h-poly">
+    <h3>다각형 클리핑 <span class="hottag">출제 다각형 알고리즘</span></h3>
+    <ul>
+      <li>속이 빈 다각형: 선 클리핑 그대로. 속이 찬 다각형: 닫힌 다각형을 다시 만들어야 함.</li>
+      <li><b>Sutherland-Hodgman</b>: 윈도우 경계(상하좌우) <b>하나씩</b> 기준으로 바깥 부분을 잘라내며 꼭짓점 목록을 다시 만든다. 4가지 경우:</li>
+    </ul>
+    <div class="tbl"><table>
+      <tr><th>변 (시작 → 끝)</th><th>출력</th></tr>
+      <tr><td>안 → 안</td><td>끝점</td></tr>
+      <tr><td>안 → 밖</td><td>교차점</td></tr>
+      <tr><td>밖 → 밖</td><td>없음</td></tr>
+      <tr><td>밖 → 안</td><td>교차점, 끝점</td></tr>
+    </table></div>
+    <p class="note">4가지 경우 표는 슬라이드에 그림으로만 있어서 알고리즘의 표준 규칙으로 적었어요.</p>
+    <ul>
+      <li><b>Weiler-Atherton</b>: <b>오목 다각형</b>에서 여러 개의 분리된 영역이 생길 때. 시계 방향으로 꼭짓점을 따라가다 외부→내부면 폴리곤 경계를, 내부→외부면 윈도우 경계를 따라간다.</li>
+    </ul>
+  </article>
+</section>
+
+<!-- 5 조명 -->
+<section class="ch" id="light">
+  <h2><span class="no">5</span>조명 모델과 다각형 쉐이딩</h2>
+  <p class="chsub">공식 세 개와 쉐이딩 세 개를 구분하면 끝</p>
+
+  <article class="hot" id="h-light">
+    <h3>조명 모델이란 <span class="hottag">출제 광원과 물체 색 밝기</span></h3>
+    <p class="core">물체의 한 점이 어떤 색과 밝기로 보일지 계산하는 모델</p>
+    <ul>
+      <li>영향 요소: <b>광원의 특성</b>(색, 세기), <b>광원의 위치</b>(방향, 거리), <b>물체의 특성</b>(고유색, 반사 특성, 광택), <b>관찰자의 위치</b>(특히 거울반사).</li>
+      <li>표면에서: 흡수, 반사(산란, 거울), 굴절 또는 투과(투명 물체).</li>
+      <li><b>주변 조명</b>(Ambient): 여러 방향 간접광 단순화, 위치와 방향 상관없이 기본 밝기, 완전히 어두워지는 것 방지.</li>
+      <li><b>점광원</b>: 한 위치에 있는 광원(전구, 손전등). 이상적으로 <b>거리의 제곱에 반비례</b>.</li>
+    </ul>
+    <div class="tbl"><table>
+      <tr><th></th><th>산란반사 (Diffuse)</th><th>거울반사 (Specular)</th></tr>
+      <tr><td>반사</td><td>여러 방향으로 고르게</td><td>특정 방향으로 강하게</td></tr>
+      <tr><td>관찰자 위치</td><td><b>영향 작음</b></td><td><b>크게 달라짐</b></td></tr>
+      <tr><td>예</td><td>종이, 나무, 무광택</td><td>금속, 유리, 광택</td></tr>
+    </table></div>
+  </article>
+
+  <article>
+    <h3>산란반사 공식 ★</h3>
+    <p class="core">주변 조명 I = Ka·Ia (0 &lt; Ka &lt; 1)</p>
+    <ul>
+      <li>Ia: 주변 조명 밝기, Ka: 주변 조명 반사 계수(물질마다 다름).</li>
+      <li><b>램버트 코사인 법칙</b>: 표면이 받는 빛의 양은 <b>cosθ에 비례</b>. <b>cosθ = N·L</b> (N 법선, L 표면에서 광원 방향, 둘 다 단위벡터).</li>
+      <li>정면으로 향하면 가장 밝고, 비스듬하면 어두움.</li>
+    </ul>
+    <p class="core">점광원 산란 I = (Ip / d)·Kd·(N·L)<br>Lambert 조명 모델 I = Ka·Ia + (Ip / d)·Kd·(N·L)</p>
+    <p>구현할 땐 뒷면에서 N·L &lt; 0이 될 수 있어서 <b>max(0, N·L)</b>.</p>
+    <div class="calc">예) N = (0, 1, 0), L = (0.6, 0.8, 0), Ip / d = 1, Kd = 0.5, Ka·Ia = 0.1<br>
+      N·L = 0·0.6 + 1·0.8 + 0·0 = <b>0.8</b> (θ ≈ 36.9°)<br>
+      I = 0.1 + 1·0.5·0.8 = <b>0.5</b><br>
+      L이 (0, 1, 0)으로 정면이면 N·L = 1 → I = 0.6, 옆 (1, 0, 0)이면 N·L = 0 → I = 0.1 (주변광만)</div>
+    <p class="note">숫자 예제는 공식 확인용으로 만든 값이에요.</p>
+  </article>
+
+  <article>
+    <h3>거울반사와 Phong 조명 모델 ★</h3>
+    <ul>
+      <li>L 빛의 입사 방향, N 법선, <b>R 반사된 빛의 방향</b>, <b>V 표면에서 관찰자 방향</b>, Φ는 V와 R 사이 각.</li>
+      <li>Φ가 0°에 가까울수록(관찰자가 반사 방향에 가까울수록) 강하다.</li>
+      <li>반짝이는 표면일수록 반사 범위가 <b>좁다</b>.</li>
+    </ul>
+    <p class="core">Phong 거울반사 I = (Ip / d)·Ks·cosⁿΦ = (Ip / d)·Ks·(V·R)ⁿ</p>
+    <ul>
+      <li>Ks: 거울반사 계수. 반짝일수록 크다.</li>
+      <li><b>n: 광택 정도</b>. 광택 많으면 n이 <b>크고</b>, 없으면 <b>작다</b>. cosΦ가 0~1이라 n이 크면 값이 급격히 작아져 하이라이트가 좁아짐.</li>
+      <li>구현할 땐 <b>max(0, V·R)ⁿ</b>.</li>
+    </ul>
+    <div class="calc">예) V·R = 0.8일 때 n = 8 → 0.8⁸ ≈ <b>0.168</b>, n = 256 → 거의 <b>0</b>. 광택이 크면 조금만 벗어나도 하이라이트가 사라짐</div>
+    <p class="core">Phong 조명 모델 I = Ka·Ia + (Ip / d)·[Kd(N·L) + Ks(V·R)ⁿ]</p>
+    <ul>
+      <li>광원이 멀면 N·L이 표면 위치와 상관없이 일정. 관측자가 멀면 V·R이 일정.</li>
+    </ul>
+  </article>
+
+  <article>
+    <h3>다각형 쉐이딩 ★</h3>
+    <p>조명 모델 = <b>한 점</b>의 밝기 계산, 쉐이딩 = 다각형 <b>내부 각 위치</b>에서 조명 계산을 어떻게 할지.</p>
+    <div class="tbl"><table>
+      <tr><th></th><th>균일 (Flat, Constant)</th><th>Gouraud</th><th>Phong</th></tr>
+      <tr><td>보간하는 것</td><td>없음, <b>면 하나에 한 색</b></td><td>정점의 <b>밝기</b>를 선형 보간</td><td>정점의 <b>법선 벡터</b>를 선형 보간</td></tr>
+      <tr><td>조명 계산 위치</td><td>면마다 한 번</td><td>정점에서</td><td>각 프래그먼트(픽셀)에서</td></tr>
+      <tr><td>장점</td><td>계산 간단, 다면체엔 양호</td><td>Flat의 밝기 불연속 제거</td><td>하이라이트가 실감, Mach Band 크게 줄임</td></tr>
+      <tr><td>단점</td><td>경계에 계단 효과, 현실감 낮음</td><td>하이라이트가 변칙적, <b>Mach Band</b></td><td><b>계산량 많음</b></td></tr>
+    </table></div>
+<pre><code>Gouraud  I4 = (y4 − y2)/(y1 − y2)·I1 + (y1 − y4)/(y1 − y2)·I2   변 위 점의 밝기
+         Ip = (x5 − xp)/(x5 − x4)·I4 + (xp − x4)/(x5 − x4)·I5   주사선 위 점의 밝기
+Phong    Np = (x5 − xp)/(x5 − x4)·N4 + (xp − x4)/(x5 − x4)·N5   같은 식으로 법선을 보간</code></pre>
+    <div class="calc">예) 주사선 위 x4 = 0에서 I4 = 0.2, x5 = 10에서 I5 = 0.8, xp = 3<br>
+      Ip = (10 − 3)/10·0.2 + (3 − 0)/10·0.8 = 0.14 + 0.24 = <b>0.38</b> (가까운 쪽 값을 더 많이 반영)</div>
+    <p class="warn">Gouraud는 <b>밝기</b>를 보간, Phong 쉐이딩은 <b>법선</b>을 보간. "Phong 조명 모델"(공식)과 "Phong 쉐이딩"(보간 방법)은 다른 것</p>
+  </article>
+
+  <article>
+    <h3>광선추적법 (Ray Tracing)</h3>
+    <ul>
+      <li>빛이 물체에 닿아 일부 반사, 일부 굴절. 그 빛이 또 반사, 굴절. 투영면 각 픽셀에 도달하는 빛을 모두 더한다.</li>
+      <li><b>I = Iamb + Idiff + Ispec + Irefl + Irefr</b> (주변 + 산란 + 거울 + 반사광 + 굴절광)</li>
+      <li>종료 조건: 어떤 물체와도 안 만남, 광원과 만남, 반사·굴절 횟수 초과, 세기가 임계값 이하.</li>
+      <li><b>은면 제거와 그림자</b>를 동시에 처리. 결과는 매우 사실적이지만 <b>계산 시간이 많다</b>.</li>
+    </ul>
+  </article>
+</section>
+
+<!-- 시험 체크 -->
+<section class="ch" id="check">
+  <h2><span class="no">★</span>시험 체크</h2>
+  <p class="chsub">눌러서 답 확인</p>
+  <article>
+    <h3>헷갈리는 것 모음</h3>
+    <div class="qz">
+      <details><summary>OpenGL이 창 생성과 키보드 입력을 해 주나?</summary><p>아니요. 오직 그리기만. 창과 입력은 GLFW</p></details>
+      <details><summary>glewInit()은 언제 호출?</summary><p>glfwMakeContextCurrent로 컨텍스트를 만든 뒤</p></details>
+      <details><summary>유일한 필수 셰이더 단계는?</summary><p>버텍스 셰이더</p></details>
+      <details><summary>GLSL이 지원하지 않는 것 두 가지</summary><p>포인터(동적 할당), 재귀 호출. 오버로딩은 됨</p></details>
+      <details><summary>mat3x2는 몇 열 몇 행?</summary><p>3열 2행</p></details>
+      <details><summary>VAO에 정점 데이터가 저장되나?</summary><p>아니요. 연결 방법과 속성 설정만. 데이터는 VBO</p></details>
+      <details><summary>위치 vec3 + 색 vec3를 한 배열에 섞으면 색 속성의 stride, offset은?</summary><p>stride 24 (6 × 4), offset 12 (3 × 4)</p></details>
+      <details><summary>사각형을 EBO로 그릴 때 glDrawElements의 count는?</summary><p>6 (인덱스 개수). 정점은 4개</p></details>
+      <details><summary>attribute와 uniform 차이</summary><p>attribute는 정점마다 다른 값(VBO에서), uniform은 그리기 한 번 동안 모두 같은 읽기 전용 전역 값</p></details>
+      <details><summary>동차좌표 (2, 4, 8, 2)의 실제 좌표는?</summary><p>(1, 2, 4)</p></details>
+      <details><summary>이동 행렬을 벡터 (x, y, z, 0)에 곱하면?</summary><p>그대로 (x, y, z, 0). 벡터는 위치가 없어서 이동이 적용 안 됨</p></details>
+      <details><summary>P' = T·R·P는 어떤 순서로 적용?</summary><p>R 먼저(회전), T 나중(이동). 오른쪽부터</p></details>
+      <details><summary>glm::mat4 M; 만 쓰면 단위행렬?</summary><p>아니요. GLM 0.9.9부터 0 행렬. glm::mat4(1.0f)로 초기화</p></details>
+      <details><summary>깊이 검사를 켰는데 화면이 이상하다. 빠뜨리기 쉬운 것은?</summary><p>매 프레임 glClear에 GL_DEPTH_BUFFER_BIT를 같이 넣기</p></details>
+      <details><summary>기본 앞면 방향과 기본 컬링 면</summary><p>반시계(CCW)가 앞면, 뒷면(GL_BACK)을 컬링</p></details>
+      <details><summary>기본 카메라는 어디서 어디를 보나?</summary><p>원점 (0, 0, 0)에서 −z 방향</p></details>
+      <details><summary>view = translate(view, (0, 0, −3))의 효과</summary><p>카메라를 +z로 3 뒤로 뺀 것과 같음</p></details>
+      <details><summary>perspective의 aspect는?</summary><p>width / height. 창 크기가 바뀌면 다시 계산</p></details>
+      <details><summary>최종 정점 위치 곱 순서</summary><p>projection × view × model × vec4(vPos, 1.0)</p></details>
+      <details><summary>윈도우와 뷰포트를 한마디로</summary><p>윈도우 = 무엇을 보여줄지(세계 좌표 영역), 뷰포트 = 어디에 보여줄지(장치 영역)</p></details>
+      <details><summary>Cohen-Sutherland에서 양 끝 코드 AND가 0이 아니면?</summary><p>둘 다 같은 쪽 바깥이라 완전히 밖, 버림</p></details>
+      <details><summary>Liang-Barsky에서 pk &lt; 0이면 무엇을 갱신?</summary><p>ustart = max(ustart, qk/pk). pk &gt; 0이면 uend = min(uend, qk/pk)</p></details>
+      <details><summary>오목 다각형에서 여러 영역이 생길 때 쓰는 클리핑</summary><p>Weiler-Atherton</p></details>
+      <details><summary>관찰자 위치에 영향을 크게 받는 반사는?</summary><p>거울반사(Specular)</p></details>
+      <details><summary>램버트 코사인 법칙에서 cosθ는?</summary><p>N·L (단위 법선과 광원 방향의 내적)</p></details>
+      <details><summary>광택이 많을수록 n은?</summary><p>크다. 하이라이트가 좁고 날카로워짐</p></details>
+      <details><summary>Gouraud와 Phong 쉐이딩은 각각 무엇을 보간?</summary><p>Gouraud는 정점 밝기, Phong은 정점 법선</p></details>
+      <details><summary>Mach Band 효과가 나타나는 쉐이딩은?</summary><p>Gouraud. Phong 쉐이딩이 크게 줄임</p></details>
+      <details><summary>광선추적법 장단점</summary><p>은면 제거와 그림자를 같이 처리, 매우 사실적. 대신 계산 시간이 많다</p></details>
+    </div>
+  </article>
+</section>
+</div>
+
+</body></html>
+
+<script>
+(function(){
+  var b=document.getElementById('codebtn');
+  function set(h){document.body.classList.toggle('hidecode',h);b.textContent=h?'코드 보이기':'코드 숨기기';}
+  set(true);
+  b.addEventListener('click',function(){set(!document.body.classList.contains('hidecode'));});
+})();
+</script>
