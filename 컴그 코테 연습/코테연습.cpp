@@ -432,6 +432,21 @@ glm::mat4 hinge(glm::mat4 base, glm::vec3 pivot, glm::vec3 axis, float angle)
 	m = glm::rotate(m, glm::radians(angle), axis);
 	return glm::translate(m, -pivot);
 }
+
+glm::mat4 yawcam(glm::vec3 pos, float yaw, float pitch)
+{
+	glm::vec3 dir(-sin(glm::radians(yaw)), -pitch, -cos(glm::radians(yaw)));
+	return glm::lookAt(pos, pos + dir, AY);
+}
+glm::mat4 lookcam(glm::vec3 eye, glm::vec3 at)
+{
+	return glm::lookAt(eye, at, AY);
+}
+glm::vec3 orbitpos(glm::vec3 pos, float a)
+{
+	float r = glm::radians(a);
+	return glm::vec3(pos.x * cos(r) + pos.z * sin(r), pos.y, -pos.x * sin(r) + pos.z * cos(r));
+}
 // =====================================================================
 // [문제 풀이]
 // =====================================================================
@@ -461,6 +476,12 @@ int opendir = 0;
 float flagangle = 0.0f;
 bool ppress = false;
 int flagdir = 0;
+float xview = 0.0f;
+float zview = 4.0f;
+glm::vec3 campos(0, 2, 5); float camyaw = 0;
+int yspin = 0;
+float camorbit = 0;
+bool rpress = false;
 
 // 처음 상태 s 키 리셋에도 사용
 void resetall()
@@ -479,6 +500,14 @@ void resetall()
 	flagangle = 0.0f;
 	ppress = false;
 	flagdir = 0;
+	zview = 4.0f;
+	xview = 0.0f;
+	yspin = 0;
+	glm::vec3 campos(0, 2, 5);
+	camyaw = 0;
+	camorbit = 0;
+	rpress = false;
+
 }
 
 // 그리기 매 프레임
@@ -581,17 +610,31 @@ void drawScene()
 			flagangle -= 1.0f;
 		}
 	}
+	if (yspin == 1)
+	{
+		camyaw += 0.1f;
+	}
+	else if (yspin == -1)
+	{
+		camyaw -= 0.1f;
+	}
+	if (rpress == true)
+	{
+		camorbit += 1.0f;
+
+	}
 	upload();
 	setcolor(false);
 
 	// 카메라 원근 투영 z 3 에서 원점 보기
 	setproj(glm::perspective(glm::radians(45.0f), (float)width / height, 0.1f, 100.0f));
-	setview(glm::lookAt(glm::vec3(0.0f, 2.0f, 4.0f), glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 
+	glm::vec3 eye = orbitpos(campos, camorbit);        // r 공전으로 위치 돌리기
+	setview(yawcam(eye, camyaw + camorbit, 0.3f));     // y 자전 + 공전한 만큼 방향도 돌려서 계속 중심 보기
 	glm::mat4 tank = glm::translate(glm::mat4(1.0f), glm::vec3(tankx1, 0.0f, tankz1));
 	//아래몸체
-	drawobj(glm::translate(tank, glm::vec3(-0.2f, 0.1f * size, 0.0f)), glm::vec3(0.3f, 0.2f * size, 1.0f), cube, cubecount);
-	drawobj(glm::translate(tank, glm::vec3(0.2f, 0.1f * size, 0.0f)), glm::vec3(0.3f, 0.2f * size, 1.0f), cube, cubecount);
+	drawobj(glm::translate(tank, glm::vec3(-0.2f , 0.1f * size, 0.0f)), glm::vec3(0.3f, 0.2f * size, 1.0f), cube, cubecount);
+	drawobj(glm::translate(tank, glm::vec3(0.2f , 0.1f * size, 0.0f)), glm::vec3(0.3f, 0.2f * size, 1.0f), cube, cubecount);
 
 	//중앙
 	glm::mat4 mid = spinat(tank, glm::vec3(0.0f, 0.25f * size, 0.0f), 0.0f, midangle);
@@ -665,7 +708,35 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		ppress = !ppress;
 		flagdir = 1;
 		break;
+	case GLFW_KEY_LEFT:
+		tankx1 -= 0.05f;
+		break;
+	case GLFW_KEY_RIGHT: tankx1 += 0.05f; break;
+	case GLFW_KEY_UP:    tankz1 += 0.05f; break;
+	case GLFW_KEY_DOWN:  tankz1 -= 0.05f; break;
+	case GLFW_KEY_Z: 
+		if (mods & GLFW_MOD_SHIFT)
+			campos.z -= 0.1f;
+		else
+			campos.z += 0.1f;
+		break;
+	case GLFW_KEY_X:
+		if (mods & GLFW_MOD_SHIFT)
+			campos.x += 0.1f;
+		else
+			campos.x -= 0.1f;
+		break;
+	case GLFW_KEY_Y:
+		if (mods & GLFW_MOD_SHIFT)
+			yspin = 1;
+		else
+			yspin = -1;
+		break;
+	case GLFW_KEY_R:
+		rpress = !rpress;
+		break;
 	}
+
 }
 
 // 마우스 버튼

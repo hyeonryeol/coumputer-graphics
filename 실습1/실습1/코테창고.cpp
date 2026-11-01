@@ -1065,8 +1065,21 @@ glm::mat4 sideview()
 // =====================================================================
 // [16] 키보드 마우스 패턴
 // =====================================================================
-// 소문자 대문자 구분  bool shift = mods & GLFW_MOD_SHIFT;  key 는 대소문자 같은 값
-//   case GLFW_KEY_X: anglex += shift ? -2 : 2; break;
+// 소문자 대문자 구분 shift 감지  mods & GLFW_MOD_SHIFT
+//   key 는 x 나 X 나 같은 GLFW_KEY_X  그래서 shift 눌렸는지로 대문자 구분
+//   틀 KeyCallback 첫 줄에 이미 있음  bool shift = (mods & GLFW_MOD_SHIFT);
+//   쓰는 모양 세 가지 실습14 ~ 17
+//     if else 로 나누기
+//       case GLFW_KEY_X:
+//           if (mods & GLFW_MOD_SHIFT) anglex -= 2;   대문자 X
+//           else anglex += 2;                         소문자 x
+//           break;
+//     한 줄로 값 고르기
+//       case GLFW_KEY_X: anglex += shift ? -2 : 2; break;
+//     방향만 정하고 애니메이션은 drawScene 에서  실습17
+//       case GLFW_KEY_X: spinx = (mods & GLFW_MOD_SHIFT) ? -1 : 1; break;
+//       drawScene 에서 anglex += 2.0f * spinx;
+//   카메라 z/Z 이동 예  campos.z += shift ? -0.1f : 0.1f;   PRESS 와 REPEAT 블록에
 // 누를 때 한 번      if (action == GLFW_PRESS)
 // 누르고 있는 동안   if (action == GLFW_PRESS || action == GLFW_REPEAT)
 // 켜고 끄기         spin = !spin;
