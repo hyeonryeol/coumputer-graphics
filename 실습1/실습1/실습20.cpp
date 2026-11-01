@@ -366,18 +366,31 @@ void drawScene()
 	for (int i = 0; i < 8; i++)
 		drawcube(glm::translate(I, glm::vec3(legs[i][0], (BELTY - 0.1f) / 2.0f, legs[i][1])), glm::vec3(0.06f, BELTY - 0.1f, 0.06f), cubestart[C_LEG]);
 
+	// 코너 이음매 바깥 꼭짓점에서 안쪽 꼭짓점까지 사선
+	glm::mat4 seam = glm::translate(I, glm::vec3(-1.5f, BELTY + 0.006f, -1.5f));
+	seam = glm::rotate(seam, glm::radians(-45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	drawcube(seam, glm::vec3(0.82f, 0.012f, 0.03f), cubestart[C_STRIPE]);
+
 	// 줄무늬 벨트와 같이 흘러감 0.3 간격
+	// 줄무늬 경로 앞 구간 0 ~ 3  코너 3 ~ 3.6  뒤 구간 3.6 ~ 6.6
 	float step = 0.3f;
-	float shift = fmod(beltoffset, step);
-	for (int k = 0; k < 12; k++) {          // 앞 구간 -z로
-		float z = 1.8f - (k * step + shift);
-		if (z < -1.8f) continue;
-		drawcube(glm::translate(I, glm::vec3(-1.5f, BELTY + 0.005f, z)), glm::vec3(0.56f, 0.012f, 0.04f), cubestart[C_STRIPE]);
-	}
-	for (int k = 0; k < 10; k++) {          // 뒤 구간 +x로
-		float x = -1.2f + (k * step + shift);
-		if (x > 1.8f) continue;
-		drawcube(glm::translate(I, glm::vec3(x, BELTY + 0.005f, -1.5f)), glm::vec3(0.04f, 0.012f, 0.56f), cubestart[C_STRIPE]);
+	for (int k = 0; k < 22; k++) {
+		float s = fmod(k * step + beltoffset, PATHLEN);
+		if (s < 3.0f) {                        // 앞 구간 -z로
+			drawcube(glm::translate(I, glm::vec3(-1.5f, BELTY + 0.005f, 1.8f - s)), glm::vec3(0.56f, 0.012f, 0.04f), cubestart[C_STRIPE]);
+		}
+		else if (s < 3.6f) {                   // 코너 안쪽 꼭짓점 기준 0도에서 90도로 부채꼴 회전 45도일 때 사선
+			float th = 90.0f * (s - 3.0f) / 0.6f;
+			float c = cos(glm::radians(th)), sn = sin(glm::radians(th));
+			float len = 0.56f / glm::max(c, sn);   // 안쪽 꼭짓점에서 바깥 테두리까지
+			glm::mat4 m = glm::translate(I, glm::vec3(-1.2f, BELTY + 0.005f, -1.2f));
+			m = glm::rotate(m, glm::radians(-th), glm::vec3(0.0f, 1.0f, 0.0f));
+			m = glm::translate(m, glm::vec3(-len / 2.0f, 0.0f, 0.0f));
+			drawcube(m, glm::vec3(len, 0.012f, 0.04f), cubestart[C_STRIPE]);
+		}
+		else {                                 // 뒤 구간 +x로
+			drawcube(glm::translate(I, glm::vec3(-1.2f + (s - 3.6f), BELTY + 0.005f, -1.5f)), glm::vec3(0.04f, 0.012f, 0.56f), cubestart[C_STRIPE]);
+		}
 	}
 
 	// 택배 상자 5개 1.3 간격으로 경로를 돌고 끝나면 처음부터

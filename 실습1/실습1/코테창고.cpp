@@ -1,353 +1,41 @@
 // =====================================================================
-// 컴그 코테 창고
+// 컴그 코테 창고 obj 버전
 // =====================================================================
-// 이 파일 하나만 프로젝트에 넣어도 바로 실행되는 기본 틀 + 복붙용 함수 모음
-// 셰이더를 문자열로 박아 둬서 glsl 파일 없어도 돌아감
-// 실행하면 m 키로 2D 예제 3D 예제 바꿔 보기 가능
+// 기능 복붙용 창고 이 파일 혼자서는 실행 안 됨
+// 코테틀.cpp 를 먼저 붙이고 여기서 필요한 함수만 골라 틀의 [창고 붙이는 자리] 에 붙여넣기
+// 3D 도형은 전부 obj 파일  cube sphere pyramid cylinder cone  전부 크기 0.6 가운데가 원점
 //
 // 쓰는 법
-//   1. 새 cpp 만들고 이 파일 통째로 붙여넣기
+//   1. 새 cpp 에 코테틀.cpp 통째로 붙여넣기 obj 파일들 같은 폴더에 넣고 육면체 나오는지 확인
 //   2. 프로젝트의 다른 cpp는 빌드에서 제외
 //      솔루션 탐색기 파일 오른쪽 클릭 속성 빌드에서 제외 예
-//   3. 문제에 필요한 부분만 남기고 drawScene KeyCallback 고치기
-//   4. 3D 문제면 glEnable GL_DEPTH_TEST 확인 그리고 glClear에 GL_DEPTH_BUFFER_BIT 확인
+//   3. 여기서 필요한 함수만 골라 [창고 붙이는 자리] 에 붙여넣기
+//      그 함수가 부르는 함수도 같이  예 drawrobot 은 hinge drawobj 필요
+//   4. 틀의 [문제 풀이] 에서 initobj drawScene KeyCallback 고치기 [18] 예제 참고
+//   5. 3D 문제면 glEnable GL_DEPTH_TEST 그리고 glClear 에 GL_DEPTH_BUFFER_BIT 확인
+//   6. 키 배정은 항상 문제 PDF 와 다시 맞추기 창고 주석의 키는 예전 실습 기준
 //
-// 목차 Ctrl F로 [번호] 검색
-//   [1]  헤더 전역 변수 공책
-//   [2]  셰이더 문자열
-//   [3]  main 창 만들기 콜백 등록 렌더링 루프
-//   [4]  셰이더 컴파일 VAO VBO 공책 올리기
-//   [5]  행렬 보내기 그리기 도우미
+// 틀에 이미 있어서 여기 없는 것 또 붙이면 재정의 에러
+//   헤더 전역 변수 공책 셰이더 main  compileshader make_shaderProgram InitBuffer upload
+//   setmodel setview setproj set2d setcolor drawwith drawpart
+//   addvertex addline addtri addrect mousetogl  Vertex Face loadobj addobj
+//
+// 목차 Ctrl F로 [번호] 검색  [1] ~ [5] 는 틀
 //   [6]  랜덤 좌표 변환 시간
-//   [7]  2D 도형 공책에 적기 점 선 삼각형 사각형 원 다각형
+//   [7]  2D 도형 공책에 적기 사각형 원 다각형 별 점선
 //   [8]  2D 도형 구조체 선택 충돌 합치기 삭제
 //   [9]  2D 애니메이션 튕기기 지그재그 스파이럴 테두리 따라가기 크기 색
 //   [10] 2D 손 회전 손 크기 변환
 //   [11] 보드판 칸 계산
-//   [12] 3D 도형 육면체 사각뿔 축 구 원기둥 원뿔 궤도 원 바닥
-//   [13] obj 파일 읽기
+//   [12] 3D 도형 obj 로 그리기 drawobj 면마다 색 꼭짓점 색 밝기 축 궤도 원 바닥
+//   [13] obj 읽기 쓰는 법
 //   [14] 3D 변환 조각 자전 공전 제자리 크기 원점 크기 경첩 열기 계층
 //   [15] 카메라 투영 뷰포트 여러 개
 //   [16] 키보드 마우스 패턴
 //   [17] 윈도우 뷰포트 변환 클리핑 계산
-//   [18] 예제 장면 drawScene KeyCallback 마우스 콜백
+//   [18] 예제 장면 틀의 [문제 풀이] 를 통째로 바꾸면 실행됨
 //   [19] 자주 나는 실수 체크
 // =====================================================================
-
-
-// =====================================================================
-// [1] 헤더 전역 변수 공책
-// =====================================================================
-#include <GL/glew.h>
-#include <GL/glfw3.h>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <vector>
-#include <cstdlib>
-#include <ctime>
-#include <cmath>
-#include <gl/glm/glm.hpp>
-#include <gl/glm/ext.hpp>
-#include <gl/glm/gtc/matrix_transform.hpp>
-
-// 함수 선언 main보다 아래에 몸통이 있는 것들
-void make_shaderProgram();
-void InitBuffer();
-void upload();
-void drawScene();
-void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-void CursorPosCallback(GLFWwindow* window, double x, double y);
-void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
-void FramebufferSizeCallback(GLFWwindow* window, int w, int h);
-void resetall();
-
-// 창 크기 문제에서 정해 주면 여기만 바꿈
-GLint width = 800, height = 600;
-GLFWwindow* gwindow;          // 콜백 밖에서 창이 필요할 때
-
-// 셰이더 프로그램 VAO VBO
-GLuint shaderProgramID;
-GLuint vao, vbo[2];           // vbo 0번 좌표 1번 색
-
-// 꼭짓점 공책
-// 매 프레임 n = 0 으로 비우고 다시 적은 다음 upload 로 GPU에 올림
-// 구 obj를 여러 개 쓰면 꼭짓점이 많아지니 크기 넉넉히
-const int MAXV = 30000;
-GLfloat position[MAXV][3];
-GLfloat color[MAXV][3];
-int n = 0;                    // 공책에 적힌 꼭짓점 수
-
-// 공책 어디서부터 몇 개가 어떤 도형인지 기억하는 표
-// 사용법
-//   int s = n; addrect(...);
-//   그릴 때 glDrawArrays(GL_TRIANGLES, s, n - s)
-struct Part {
-	int start;
-	int count;
-	GLenum mode;              // GL_TRIANGLES GL_LINES GL_LINE_LOOP GL_POINTS
-};
-
-const float PI = 3.14159265f;
-
-
-// =====================================================================
-// [2] 셰이더 문자열
-// =====================================================================
-// 파일 대신 문자열 R"( ... )" 안에 그대로 적음
-// 2D에서도 같은 셰이더 사용 그때는 세 행렬을 단위행렬로 보내면 됨 set2d 참고
-const char* vertexSource = R"(
-#version 330 core
-layout (location = 0) in vec3 vPosition;   // 위치 attribute 0번
-layout (location = 1) in vec3 vColor;      // 색 attribute 1번
-out vec3 out_Color;                        // 프래그먼트로 보냄
-uniform mat4 modelTransform;               // 모델 변환
-uniform mat4 viewTransform;                // 카메라
-uniform mat4 projectionTransform;          // 투영
-void main()
-{
-	gl_Position = projectionTransform * viewTransform * modelTransform * vec4(vPosition, 1.0);
-	out_Color = vColor;
-}
-)";
-
-const char* fragmentSource = R"(
-#version 330 core
-in vec3 out_Color;          // 버텍스 셰이더에서 받은 색
-out vec4 FragColor;         // 최종 픽셀 색
-uniform int useColor;       // 1이면 아래 uColor로 덮어씀 선택 표시나 한 색 칠하기용
-uniform vec3 uColor;
-void main()
-{
-	if (useColor == 1)
-		FragColor = vec4(uColor, 1.0);
-	else
-		FragColor = vec4(out_Color, 1.0);
-}
-)";
-
-// 파일에서 읽고 싶을 때 쓰는 함수 vertex.glsl 처럼 파일이 있을 때
-std::string filetobuf(const char* file)
-{
-	std::ifstream shaderFile(file);
-	if (!shaderFile.is_open())
-	{
-		std::cerr << "파일 열기 실패: " << file << std::endl;
-		return "";
-	}
-	std::string source((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
-	return source;
-}
-
-
-// =====================================================================
-// [3] main 창 만들기 콜백 등록 렌더링 루프
-// =====================================================================
-int main()
-{
-	// GLFW 초기화
-	if (!glfwInit())
-		return -1;
-
-	// OpenGL 3.3 코어 프로파일
-	// glColor3f glRectf 같은 옛날 함수 쓰는 문제면 CORE 대신 GLFW_OPENGL_COMPAT_PROFILE
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	// 윈도우 생성
-	GLFWwindow* window = glfwCreateWindow(width, height, "OpenGL", nullptr, nullptr);
-	if (!window)
-	{
-		std::cerr << "윈도우 생성 실패" << std::endl;
-		glfwTerminate();
-		return -1;
-	}
-	gwindow = window;
-	glfwMakeContextCurrent(window);     // 컨텍스트 먼저
-	glfwSwapInterval(1);                // 모니터 주사율에 맞춰 프레임 고정 애니메이션 속도 일정
-
-	// GLEW 초기화 반드시 컨텍스트 만든 다음
-	glewExperimental = GL_TRUE;
-	if (glewInit() != GLEW_OK)
-	{
-		std::cerr << "GLEW 초기화 실패" << std::endl;
-		glfwDestroyWindow(window);
-		glfwTerminate();
-		return -1;
-	}
-
-	glViewport(0, 0, width, height);
-	glEnable(GL_DEPTH_TEST);            // 은면제거 2D만 쓰면 없어도 됨
-	srand((unsigned int)time(NULL));    // 랜덤 시드 한 번만
-
-	make_shaderProgram();               // 셰이더 프로그램
-	InitBuffer();                       // VAO VBO
-	resetall();                         // 문제 초기 상태
-
-	// 콜백 등록 안 쓰는 건 지워도 됨
-	glfwSetKeyCallback(window, KeyCallback);
-	glfwSetMouseButtonCallback(window, MouseButtonCallback);
-	glfwSetCursorPosCallback(window, CursorPosCallback);
-	glfwSetScrollCallback(window, ScrollCallback);
-	glfwSetFramebufferSizeCallback(window, FramebufferSizeCallback);
-
-	// 렌더링 루프 매 프레임 그리기 버퍼 교체 이벤트 처리
-	while (!glfwWindowShouldClose(window))
-	{
-		drawScene();
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-	}
-
-	glfwDestroyWindow(window);
-	glfwTerminate();
-	return 0;
-}
-
-// 창 크기 바뀌면 뷰포트도 다시 원근 투영 비율도 width height로 계산됨
-void FramebufferSizeCallback(GLFWwindow* window, int w, int h)
-{
-	if (w == 0 || h == 0) return;    // 최소화
-	width = w;
-	height = h;
-	glViewport(0, 0, w, h);
-}
-
-
-// =====================================================================
-// [4] 셰이더 컴파일 VAO VBO 공책 올리기
-// =====================================================================
-// 셰이더 하나 컴파일 실패하면 콘솔에 이유 출력
-GLuint compileshader(GLenum type, const char* src)
-{
-	GLuint s = glCreateShader(type);           // 1 생성
-	glShaderSource(s, 1, &src, NULL);          // 2 소스 연결
-	glCompileShader(s);                        // 3 컴파일
-	GLint result;
-	GLchar errorLog[512];
-	glGetShaderiv(s, GL_COMPILE_STATUS, &result);
-	if (!result)
-	{
-		glGetShaderInfoLog(s, 512, NULL, errorLog);
-		std::cerr << "ERROR: shader 컴파일 실패\n" << errorLog << std::endl;
-	}
-	return s;
-}
-
-// 두 셰이더를 붙여 프로그램 만들기
-// 파일로 쓰려면 vertexSource 자리에 filetobuf("vertex.glsl").c_str() 결과를 std::string에 담아서 넣기
-void make_shaderProgram()
-{
-	GLuint vs = compileshader(GL_VERTEX_SHADER, vertexSource);
-	GLuint fs = compileshader(GL_FRAGMENT_SHADER, fragmentSource);
-
-	shaderProgramID = glCreateProgram();       // 프로그램 생성
-	glAttachShader(shaderProgramID, vs);       // 붙이기
-	glAttachShader(shaderProgramID, fs);
-	glLinkProgram(shaderProgramID);            // 링크
-	glDeleteShader(vs);                        // 링크 끝나면 셰이더 객체는 필요 없음
-	glDeleteShader(fs);
-
-	GLint result;
-	GLchar errorLog[512];
-	glGetProgramiv(shaderProgramID, GL_LINK_STATUS, &result);
-	if (!result)
-	{
-		glGetProgramInfoLog(shaderProgramID, 512, NULL, errorLog);
-		std::cerr << "ERROR: shader program 연결 실패\n" << errorLog << std::endl;
-	}
-	glUseProgram(shaderProgramID);
-}
-
-// VAO 하나 VBO 두 개 공책 최대 크기만큼 자리 잡기
-void InitBuffer()
-{
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-	glGenBuffers(2, vbo);
-
-	// 0번 VBO 좌표 attribute 0번 꼭짓점마다 float 3개
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(position), position, GL_DYNAMIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
-
-	// 1번 VBO 색 attribute 1번
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(color), color, GL_DYNAMIC_DRAW);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(1);
-}
-
-// 공책에 적힌 n개만 GPU로 올리기 공책 다 채운 다음 그리기 전에 한 번
-void upload()
-{
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, n * 3 * sizeof(GLfloat), position);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, n * 3 * sizeof(GLfloat), color);
-	glUseProgram(shaderProgramID);
-	glBindVertexArray(vao);
-}
-
-
-// =====================================================================
-// [5] 행렬 보내기 그리기 도우미
-// =====================================================================
-// uniform 이름은 셰이더 문자열과 똑같아야 함 다르면 -1 나오고 아무 일도 안 생김
-void setmodel(glm::mat4 m)
-{
-	unsigned int loc = glGetUniformLocation(shaderProgramID, "modelTransform");
-	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(m));
-}
-void setview(glm::mat4 v)
-{
-	unsigned int loc = glGetUniformLocation(shaderProgramID, "viewTransform");
-	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(v));
-}
-void setproj(glm::mat4 p)
-{
-	unsigned int loc = glGetUniformLocation(shaderProgramID, "projectionTransform");
-	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(p));
-}
-
-// 2D 문제 세 행렬 모두 단위행렬 좌표 그대로 -1 ~ 1 화면
-void set2d()
-{
-	setmodel(glm::mat4(1.0f));
-	setview(glm::mat4(1.0f));
-	setproj(glm::mat4(1.0f));
-}
-
-// 한 색으로 덮어 칠하기 켜기 끄기 선택된 도형 테두리 표시 등에 사용
-// 사용법 setcolor(true, 1, 0, 0); 그리기; setcolor(false);
-void setcolor(bool on, float r = 0.0f, float g = 0.0f, float b = 0.0f)
-{
-	glUniform1i(glGetUniformLocation(shaderProgramID, "useColor"), on ? 1 : 0);
-	glUniform3f(glGetUniformLocation(shaderProgramID, "uColor"), r, g, b);
-}
-
-// 행렬 보내고 공책 일부 그리기 제일 많이 쓰는 함수
-void drawwith(glm::mat4 m, GLenum mode, int start, int count)
-{
-	setmodel(m);
-	glDrawArrays(mode, start, count);
-}
-
-// 표 Part 하나 그리기
-void drawpart(glm::mat4 m, Part p)
-{
-	drawwith(m, p.mode, p.start, p.count);
-}
-
-// 크기 1 육면체를 s 크기로 그리기 addcube로 적은 시작 번호 넘김
-void drawcube(glm::mat4 m, glm::vec3 s, int start)
-{
-	drawwith(glm::scale(m, s), GL_TRIANGLES, start, 36);
-}
 
 
 // =====================================================================
@@ -379,13 +67,7 @@ void randcolor(float c[3])
 	c[2] = 0.2f + 0.8f * randf();
 }
 
-// 마우스 픽셀 좌표를 GL 좌표 -1 ~ 1 로
-// 픽셀은 왼쪽 위가 0 0 이고 아래로 y 증가 GL은 가운데가 0 0 이고 위로 y 증가
-void mousetogl(double mx, double my, float& gx, float& gy)
-{
-	gx = (float)(mx / width * 2.0 - 1.0);
-	gy = (float)(1.0 - my / height * 2.0);
-}
+// mousetogl 은 틀에 있음
 
 // GL 좌표를 픽셀로 거꾸로
 void gltomouse(float gx, float gy, double& mx, double& my)
@@ -429,40 +111,7 @@ float deltatime()
 //   add 결과가 삼각형 묶음이면 GL_TRIANGLES
 //   선 두 점이면 GL_LINES  이어진 테두리면 GL_LINE_LOOP
 
-// 점 하나 공책에 적기 모든 add 함수의 기본
-void addvertex(float x, float y, float z, float r, float g, float b)
-{
-	if (n >= MAXV) return;    // 공책 넘침 방지
-	position[n][0] = x;
-	position[n][1] = y;
-	position[n][2] = z;
-	color[n][0] = r;
-	color[n][1] = g;
-	color[n][2] = b;
-	n++;
-}
-
-// 선 하나 GL_LINES로 그림 꼭짓점 2개
-void addline(float x1, float y1, float x2, float y2, float r, float g, float b)
-{
-	addvertex(x1, y1, 0.0f, r, g, b);
-	addvertex(x2, y2, 0.0f, r, g, b);
-}
-
-// 삼각형 하나 꼭짓점 3개 반시계로 주면 앞면
-void addtri(float x1, float y1, float x2, float y2, float x3, float y3, float r, float g, float b)
-{
-	addvertex(x1, y1, 0.0f, r, g, b);
-	addvertex(x2, y2, 0.0f, r, g, b);
-	addvertex(x3, y3, 0.0f, r, g, b);
-}
-
-// 사각형 왼쪽 아래 x1 y1 오른쪽 위 x2 y2 삼각형 2개 꼭짓점 6개
-void addrect(float x1, float y1, float x2, float y2, float r, float g, float b)
-{
-	addtri(x1, y1, x2, y1, x2, y2, r, g, b);
-	addtri(x1, y1, x2, y2, x1, y2, r, g, b);
-}
+// addvertex addline addtri addrect 는 틀에 있음
 
 // 사각형 가운데 cx cy 반폭 hw 반높이 hh 로 주기
 void addrectc(float cx, float cy, float hw, float hh, float r, float g, float b)
@@ -849,6 +498,8 @@ bool moveto(float& x, float& y, float tx, float ty, float speed)
 }
 
 // 크기 커졌다 작아졌다 반복 dir 는 1 또는 -1 저장해 두기
+// 사용법 전역  float lowscale = 1.0f; int lowdir = 1; bool lowanim = false;
+//       drawScene 에서  if (lowanim) pulse(lowscale, lowdir, 0.5f, 1.5f, 0.02f);
 void pulse(float& sc, int& dir, float lo, float hi, float step)
 {
 	sc += step * dir;
@@ -971,77 +622,101 @@ void snaptocell(float& x, float& y)
 
 
 // =====================================================================
-// [12] 3D 도형
+// [12] 3D 도형 obj 로 그리기
 // =====================================================================
-// 전부 크기 1 가운데가 원점 drawcube 나 glm::scale 로 크기 정함
+// obj 파일 cube sphere pyramid cylinder cone 전부 크기 0.6  -0.3 ~ 0.3  가운데가 원점
+// 읽기는 틀 initobj 에서 loadobj  공책 적기는 아래 add 함수  그리기는 drawobj
 // 면은 바깥에서 볼 때 반시계 순서 컬링 써도 제대로 보임
 
-// 육면체 꼭짓점 8개 면 순서 앞 뒤 오른 왼 위 아래
-float cubep[8][3] = {
-	{ -0.5f, -0.5f,  0.5f }, { 0.5f, -0.5f,  0.5f }, { 0.5f, 0.5f,  0.5f }, { -0.5f, 0.5f,  0.5f },
-	{ -0.5f, -0.5f, -0.5f }, { 0.5f, -0.5f, -0.5f }, { 0.5f, 0.5f, -0.5f }, { -0.5f, 0.5f, -0.5f },
-};
-int cubeface[6][4] = { { 0, 1, 2, 3 }, { 5, 4, 7, 6 }, { 1, 5, 6, 2 }, { 4, 0, 3, 7 }, { 3, 2, 6, 7 }, { 4, 5, 1, 0 } };
+// obj 한 변 길이
+const float OBJSIZE = 0.6f;
+
+// 원하는 실제 크기 s 로 그리기
+// 사용법 drawobj(m, glm::vec3(1.0f, 0.2f, 1.0f), start, count)  가로 1 높이 0.2 깊이 1
+//       drawobj(m, glm::vec3(0.5f), start, count)  지름 0.5 구
+// 칸 순서  drawobj( 행렬 위치 회전,  실제 크기 가로 높이 깊이,  공책 시작 번호,  꼭짓점 개수 )
+void drawobj(glm::mat4 m, glm::vec3 s, int start, int count)
+{
+	drawwith(glm::scale(m, s / OBJSIZE), GL_TRIANGLES, start, count);
+}
+
+// obj 삼각형 일부만 한 색으로 적기 first 번째 삼각형부터 cnt 개
+// 사용법 공책 적기  int s = n; addobjpart(cubev, cubef, 0, 2, 1, 0, 0);   앞면 삼각형 2개만 빨강
+void addobjpart(const std::vector<Vertex>& vv, const std::vector<Face>& ff, int first, int cnt, float r, float g, float b)
+{
+	for (int i = first; i < first + cnt && i < (int)ff.size(); i++) {
+		int id[3] = { ff[i].a, ff[i].b, ff[i].c };
+		for (int j = 0; j < 3; j++)
+			addvertex(vv[id[j]].x, vv[id[j]].y, vv[id[j]].z, r, g, b);
+	}
+}
+
+// 한 색인데 면 방향마다 밝기 다르게 구 원기둥 육면체가 입체로 보임
+// addobj 대신 이것 쓰면 한 색 obj 도 모서리가 보임
+// 사용법 공책 적기  int sp = n; addobjshade(spherev, spheref, 0, 0, 1); int spc = n - sp;
+//       그리기     drawobj(m, glm::vec3(0.5f), sp, spc);
+// 칸 순서  addobjshade( obj 꼭짓점,  obj 면,  r,  g,  b )
+void addobjshade(const std::vector<Vertex>& vv, const std::vector<Face>& ff, float r, float g, float b)
+{
+	glm::vec3 light = glm::normalize(glm::vec3(0.4f, 0.8f, 0.6f));
+	for (const Face& f : ff) {
+		glm::vec3 p0(vv[f.a].x, vv[f.a].y, vv[f.a].z);
+		glm::vec3 p1(vv[f.b].x, vv[f.b].y, vv[f.b].z);
+		glm::vec3 p2(vv[f.c].x, vv[f.c].y, vv[f.c].z);
+		glm::vec3 nrm = glm::normalize(glm::cross(p1 - p0, p2 - p0));
+		float s = 0.55f + 0.45f * glm::max(glm::dot(nrm, light), 0.0f);
+		float cr = glm::min(r * s, 1.0f), cg = glm::min(g * s, 1.0f), cb = glm::min(b * s, 1.0f);
+		addvertex(p0.x, p0.y, p0.z, cr, cg, cb);
+		addvertex(p1.x, p1.y, p1.z, cr, cg, cb);
+		addvertex(p2.x, p2.y, p2.z, cr, cg, cb);
+	}
+}
+
+// cube.obj 면 순서 앞 뒤 오른 왼 위 아래 면마다 삼각형 2개 꼭짓점 6개
 const int F_FRONT = 0, F_BACK = 1, F_RIGHT = 2, F_LEFT = 3, F_TOP = 4, F_BOTTOM = 5;
 
-// 한 색 육면체 꼭짓점 36개 면마다 밝기 조금 다르게 해서 모서리가 보임
-void addcube(float r, float g, float b)
+// 면마다 색 다른 육면체 fc 순서 앞 뒤 오른 왼 위 아래 꼭짓점 36개
+// 면 하나만 그리기 drawobj(m, 크기, start + 면번호 * 6, 6)
+// 사용법 공책 적기  float fc[6][3] = { {1,0,0}, {0,1,0}, {0,0,1}, {1,1,0}, {0,1,1}, {1,0,1} };
+//                 int cs = n; addcubefaces(cubev, cubef, fc);
+//       그리기     drawobj(m, glm::vec3(0.5f), cs, 36);
+void addcubefaces(const std::vector<Vertex>& vv, const std::vector<Face>& ff, float fc[6][3])
 {
-	float shade[6] = { 1.0f, 0.75f, 0.85f, 0.85f, 1.1f, 0.6f };
-	int order[6] = { 0, 1, 2, 0, 2, 3 };
 	for (int k = 0; k < 6; k++)
-		for (int j = 0; j < 6; j++) {
-			int v = cubeface[k][order[j]];
-			float s = shade[k];
-			addvertex(cubep[v][0], cubep[v][1], cubep[v][2], glm::min(r * s, 1.0f), glm::min(g * s, 1.0f), glm::min(b * s, 1.0f));
-		}
+		addobjpart(vv, ff, k * 2, 2, fc[k][0], fc[k][1], fc[k][2]);
 }
 
-// 면마다 색 다른 육면체 fc 순서 앞 뒤 오른 왼 위 아래
-// 면 하나만 그리기 drawwith(m, GL_TRIANGLES, start + 면번호 * 6, 6)
-void addcubefaces(float fc[6][3])
+// pyramid.obj 면 순서 앞 오른 뒤 왼 삼각형 1개씩 그다음 바닥 삼각형 2개 꼭짓점 18개
+// 옆면 하나 drawobj(m, 크기, start + k * 3, 3)  바닥 start + 12, 6
+// 사용법 공책 적기  float pc[5][3] = { {1,0,0}, {0,1,0}, {0,0,1}, {1,1,0}, {0.5f,0.5f,0.5f} };
+//                 int ps = n; addpyramidfaces(pyv, pyf, pc);
+//       그리기     drawobj(m, glm::vec3(0.5f), ps, 18);
+void addpyramidfaces(const std::vector<Vertex>& vv, const std::vector<Face>& ff, float fc[5][3])
 {
-	int order[6] = { 0, 1, 2, 0, 2, 3 };
-	for (int k = 0; k < 6; k++)
-		for (int j = 0; j < 6; j++) {
-			int v = cubeface[k][order[j]];
-			addvertex(cubep[v][0], cubep[v][1], cubep[v][2], fc[k][0], fc[k][1], fc[k][2]);
-		}
+	for (int k = 0; k < 4; k++)
+		addobjpart(vv, ff, k, 1, fc[k][0], fc[k][1], fc[k][2]);
+	addobjpart(vv, ff, 4, 2, fc[4][0], fc[4][1], fc[4][2]);
 }
 
-// 꼭짓점마다 색 다른 육면체 실습14 색이 면 안에서 섞여 보임
-void addcubevertexcolor(float vc[8][3])
+// 꼭짓점마다 색 다른 obj 실습14 색이 면 안에서 섞여 보임 vc 는 obj 꼭짓점 번호 순서
+// cube.obj 꼭짓점 번호 x y z 부호
+//   0 - - -   1 - - +   2 - + -   3 - + +   4 + - -   5 + - +   6 + + -   7 + + +
+// pyramid.obj 꼭짓점 번호 0 앞왼 1 앞오른 2 뒤오른 3 뒤왼 바닥  4 꼭대기
+// 사용법 공책 적기  float vc[8][3] = { {1,0,0}, {0,1,0}, {0,0,1}, {1,1,0}, {0,1,1}, {1,0,1}, {1,1,1}, {0,0,0} };
+//                 int cs = n; addobjvertexcolor(cubev, cubef, vc);
+//       그리기     drawobj(m, glm::vec3(0.5f), cs, 36);
+void addobjvertexcolor(const std::vector<Vertex>& vv, const std::vector<Face>& ff, float vc[][3])
 {
-	int order[6] = { 0, 1, 2, 0, 2, 3 };
-	for (int k = 0; k < 6; k++)
-		for (int j = 0; j < 6; j++) {
-			int v = cubeface[k][order[j]];
-			addvertex(cubep[v][0], cubep[v][1], cubep[v][2], vc[v][0], vc[v][1], vc[v][2]);
-		}
-}
-
-// 사각뿔 바닥 정사각형 y -0.5 꼭대기 0 0.5 0 꼭짓점 18개
-// 면 순서 앞 오른 뒤 왼 삼각형 4개 각 3개 그다음 바닥 6개
-// 옆면 하나 그리기 drawwith(m, GL_TRIANGLES, start + k * 3, 3)  바닥 start + 12, 6
-void addpyramid(float fc[5][3])
-{
-	float top[3] = { 0.0f, 0.5f, 0.0f };
-	float base[4][3] = { { -0.5f, -0.5f, 0.5f }, { 0.5f, -0.5f, 0.5f }, { 0.5f, -0.5f, -0.5f }, { -0.5f, -0.5f, -0.5f } };
-	for (int k = 0; k < 4; k++) {
-		float* a = base[k];
-		float* b = base[(k + 1) % 4];
-		addvertex(a[0], a[1], a[2], fc[k][0], fc[k][1], fc[k][2]);
-		addvertex(b[0], b[1], b[2], fc[k][0], fc[k][1], fc[k][2]);
-		addvertex(top[0], top[1], top[2], fc[k][0], fc[k][1], fc[k][2]);
-	}
-	int order[6] = { 3, 2, 1, 3, 1, 0 };   // 아래에서 볼 때 반시계
-	for (int j = 0; j < 6; j++) {
-		float* p = base[order[j]];
-		addvertex(p[0], p[1], p[2], fc[4][0], fc[4][1], fc[4][2]);
+	for (const Face& f : ff) {
+		int id[3] = { f.a, f.b, f.c };
+		for (int j = 0; j < 3; j++)
+			addvertex(vv[id[j]].x, vv[id[j]].y, vv[id[j]].z, vc[id[j]][0], vc[id[j]][1], vc[id[j]][2]);
 	}
 }
 
 // 좌표축 x 빨강 y 초록 z 파랑 GL_LINES 꼭짓점 6개 길이 len
+// 사용법 공책 적기  int ax = n; addaxes(1.5f);
+//       그리기     drawwith(world, GL_LINES, ax, 6);
 void addaxes(float len)
 {
 	addvertex(-len, 0, 0, 1, 0, 0); addvertex(len, 0, 0, 1, 0, 0);
@@ -1049,45 +724,11 @@ void addaxes(float len)
 	addvertex(0, 0, -len, 0, 0, 1); addvertex(0, 0, len, 0, 0, 1);
 }
 
-// 구 반지름 0.5 obj 없이 직접 만들기 stacks 위아래 조각 slices 둘레 조각
-// 꼭짓점 수 stacks * slices * 6
-void addsphere(int stacks, int slices, float r, float g, float b)
-{
-	auto P = [&](int i, int j, float out[3]) {
-		float lat = -PI / 2 + PI * i / stacks;      // 위도 아래에서 위로
-		float lon = 2.0f * PI * j / slices;         // 경도
-		out[0] = 0.5f * cos(lat) * sin(lon);
-		out[1] = 0.5f * sin(lat);
-		out[2] = 0.5f * cos(lat) * cos(lon);
-	};
-	for (int i = 0; i < stacks; i++)
-		for (int j = 0; j < slices; j++) {
-			float a[3], bb[3], c[3], d[3];
-			P(i, j, a); P(i, j + 1, bb); P(i + 1, j + 1, c); P(i + 1, j, d);
-			addvertex(a[0], a[1], a[2], r, g, b); addvertex(bb[0], bb[1], bb[2], r, g, b); addvertex(c[0], c[1], c[2], r, g, b);
-			addvertex(a[0], a[1], a[2], r, g, b); addvertex(c[0], c[1], c[2], r, g, b); addvertex(d[0], d[1], d[2], r, g, b);
-		}
-}
-
-// 원기둥 원뿔 y -0.5 ~ 0.5 아래 반지름 rb 위 반지름 rt
-// rt = 0 이면 원뿔 rb = rt 면 원기둥 꼭짓점 수 slices * 12
-void addcylinder(float rb, float rt, int slices, float r, float g, float b)
-{
-	for (int j = 0; j < slices; j++) {
-		float a1 = 2.0f * PI * j / slices, a2 = 2.0f * PI * (j + 1) / slices;
-		float b1x = rb * sin(a1), b1z = rb * cos(a1), b2x = rb * sin(a2), b2z = rb * cos(a2);
-		float t1x = rt * sin(a1), t1z = rt * cos(a1), t2x = rt * sin(a2), t2z = rt * cos(a2);
-		// 옆면
-		addvertex(b1x, -0.5f, b1z, r, g, b); addvertex(b2x, -0.5f, b2z, r, g, b); addvertex(t2x, 0.5f, t2z, r, g, b);
-		addvertex(b1x, -0.5f, b1z, r, g, b); addvertex(t2x, 0.5f, t2z, r, g, b); addvertex(t1x, 0.5f, t1z, r, g, b);
-		// 윗면 아랫면 조금 어둡게
-		float s = 0.8f;
-		addvertex(0, 0.5f, 0, r * s, g * s, b * s); addvertex(t1x, 0.5f, t1z, r * s, g * s, b * s); addvertex(t2x, 0.5f, t2z, r * s, g * s, b * s);
-		addvertex(0, -0.5f, 0, r * s, g * s, b * s); addvertex(b2x, -0.5f, b2z, r * s, g * s, b * s); addvertex(b1x, -0.5f, b1z, r * s, g * s, b * s);
-	}
-}
-
 // xz 평면 원 반지름 1 궤도 그리기 GL_LINE_LOOP 꼭짓점 seg개 scale로 반지름 조절
+// 사용법 공책 적기  int orb = n; addorbit(72, 0.5f, 0.5f, 0.5f);
+//       그리기     drawwith(glm::scale(기준 행렬, glm::vec3(반지름)), GL_LINE_LOOP, orb, 72);
+//                 기준 행렬과 반지름은 그 궤도를 도는 물체의 orbity 와 똑같이
+// 칸 순서  addorbit( 원 점 개수,  r,  g,  b )  반지름 1 짜리
 void addorbit(int seg, float r, float g, float b)
 {
 	for (int k = 0; k < seg; k++) {
@@ -1097,6 +738,9 @@ void addorbit(int seg, float r, float g, float b)
 }
 
 // xz 바닥 판 크기 1 y = 0 삼각형 2개 scale로 크기 조절
+// 사용법 공책 적기  int gr = n; addfloor(0.5f, 0.5f, 0.5f);
+//       그리기     drawwith(glm::scale(glm::mat4(1.0f), glm::vec3(4.0f, 1.0f, 4.0f)), GL_TRIANGLES, gr, 6);   4 x 4 바닥
+// 칸 순서  addfloor( r,  g,  b )  크기 1 짜리
 void addfloor(float r, float g, float b)
 {
 	addvertex(-0.5f, 0, 0.5f, r, g, b); addvertex(0.5f, 0, 0.5f, r, g, b); addvertex(0.5f, 0, -0.5f, r, g, b);
@@ -1105,55 +749,15 @@ void addfloor(float r, float g, float b)
 
 
 // =====================================================================
-// [13] obj 파일 읽기
+// [13] obj 읽기 쓰는 법
 // =====================================================================
-// v x y z 와 f 를 읽음  f 1 2 3  f 1/2/3 ...  f 1//3 ...  사각형 면 f 1 2 3 4 모두 처리
-// obj 번호는 1부터라 1 빼서 저장
-struct Vertex { float x, y, z; };
-struct Face { int a, b, c; };
-
-void loadobj(const char* name, std::vector<Vertex>& vv, std::vector<Face>& ff)
-{
-	vv.clear();
-	ff.clear();
-	std::ifstream file(name);
-	if (!file) { std::cout << "열기 실패: " << name << std::endl; return; }
-	std::string line;
-	while (std::getline(file, line)) {
-		std::istringstream ss(line);
-		std::string type;
-		ss >> type;
-		if (type == "v") {
-			Vertex p;
-			ss >> p.x >> p.y >> p.z;
-			vv.push_back(p);
-		}
-		else if (type == "f") {
-			std::vector<int> idx;
-			std::string tok;
-			while (ss >> tok)
-				idx.push_back(std::stoi(tok.substr(0, tok.find('/'))) - 1);   // 슬래시 앞 숫자만
-			for (int k = 1; k + 1 < (int)idx.size(); k++)                     // 사각형은 삼각형 두 개로
-				ff.push_back({ idx[0], idx[k], idx[k + 1] });
-		}
-	}
-}
-
-// 읽은 obj를 공책에 적기 한 색
-void addobj(const std::vector<Vertex>& vv, const std::vector<Face>& ff, float r, float g, float b)
-{
-	for (const Face& f : ff) {
-		int id[3] = { f.a, f.b, f.c };
-		for (int j = 0; j < 3; j++)
-			addvertex(vv[id[j]].x, vv[id[j]].y, vv[id[j]].z, r, g, b);
-	}
-}
-
-// 사용법
-//   std::vector<Vertex> sv; std::vector<Face> sf;
-//   main 에서 한 번 loadobj("sphere.obj", sv, sf);
-//   drawScene 에서 int s = n; addobj(sv, sf, 0, 0, 1); drawwith(m, GL_TRIANGLES, s, n - s);
-//   obj 파일은 cpp와 같은 폴더 VS 실행 위치가 프로젝트 폴더라서
+// Vertex Face loadobj addobj 는 틀에 있음 여기는 쓰는 법만
+//   1. 틀 [문제 풀이] 위쪽에 담는 곳 추가     std::vector<Vertex> spherev; std::vector<Face> spheref;
+//   2. initobj 안에 읽기                     loadobj("sphere.obj", spherev, spheref);
+//   3. drawScene 공책 적기 upload 전에        int sp = n; addobjshade(spherev, spheref, 0, 0, 1); int spc = n - sp;
+//   4. upload 다음 그리기                    drawobj(m, glm::vec3(0.5f), sp, spc);   지름 0.5
+// 같은 obj 를 색만 바꿔 여러 번 적어도 되고 한 번 적고 setcolor(true, r, g, b) 로 덮어 칠해도 됨
+// obj 파일은 cpp 와 같은 프로젝트 폴더 VS 에서 Ctrl F5 로 실행 못 찾으면 콘솔에 열기 실패
 
 
 // =====================================================================
@@ -1168,6 +772,10 @@ void addobj(const std::vector<Vertex>& vv, const std::vector<Face>& ff, float r,
 const glm::vec3 AX(1.0f, 0.0f, 0.0f), AY(0.0f, 1.0f, 0.0f), AZ(0.0f, 0.0f, 1.0f);
 
 // 제자리 자전 위치 p 에서 각도만큼 돌기
+// 사용법 glm::mat4 mid = spinat(tank, glm::vec3(0, 0.25f, 0), 0.0f, midangle);   y 축만 돌면 ax 는 0
+//       drawobj(mid, glm::vec3(0.4f, 0.1f, 0.5f), cs, 36);
+//       mid 를 변수로 두고 위에 붙는 부품은 mid 에서 이어서 translate
+// 칸 순서  spinat( 기준 행렬,  자리 위치,  x축 각도,  y축 각도 )
 glm::mat4 spinat(glm::mat4 base, glm::vec3 p, float ax, float ay)
 {
 	glm::mat4 m = glm::translate(base, p);
@@ -1177,6 +785,11 @@ glm::mat4 spinat(glm::mat4 base, glm::vec3 p, float ax, float ay)
 }
 
 // 원점 중심 y축 공전 반지름 r 각도 a  자기 방향도 같이 돎
+// 사용법 glm::mat4 p1 = orbity(glm::mat4(1.0f), a1, 1.0f);   반지름 1 궤도에서 a1 도
+//       drawobj(p1, glm::vec3(0.2f), sp, spc);
+//       기울어진 궤도  orbity(glm::rotate(world, glm::radians(45.0f), AZ), a2, 1.3f)
+//       달 화면에 평행  orbity(glm::rotate(행성 행렬, glm::radians(90.0f), AX), am, 0.3f)
+// 칸 순서  orbity( 기준 행렬,  공전 각도,  공전 반지름 )
 glm::mat4 orbity(glm::mat4 base, float a, float r)
 {
 	glm::mat4 m = glm::rotate(base, glm::radians(a), AY);
@@ -1184,6 +797,9 @@ glm::mat4 orbity(glm::mat4 base, float a, float r)
 }
 
 // 공전은 하되 자기 방향은 그대로 두기 돌아가는 만큼 다시 거꾸로 돌림 실습19 상부 몸체
+// 사용법 glm::mat4 m = orbitkeep(world, a1, glm::vec3(1.0f, 0, 0));   반지름 1 공전 방향은 그대로 //위치
+//       drawobj(m, glm::vec3(0.2f), sp, spc); //크기
+// 칸 순서  orbitkeep( 기준 행렬 공전 중심,  공전 각도,  중심에서 떨어진 위치 )
 glm::mat4 orbitkeep(glm::mat4 base, float a, glm::vec3 offset)
 {
 	glm::mat4 m = glm::rotate(base, glm::radians(a), AY);
@@ -1192,6 +808,8 @@ glm::mat4 orbitkeep(glm::mat4 base, float a, glm::vec3 offset)
 }
 
 // 제자리 크기 a/A 위치 그대로 도형만 커짐
+// 사용법 drawobj(scaleinplace(world, glm::vec3(0.5f, 0, 0), s), glm::vec3(0.3f), cs, 36);   s 는 상태 변수 cs는 cubecount
+// 칸 순서  scaleinplace( 기준 행렬,  자리 위치,  배율 )  가로 높이 깊이 전부 같은 배율
 glm::mat4 scaleinplace(glm::mat4 base, glm::vec3 p, float s)
 {
 	glm::mat4 m = glm::translate(base, p);
@@ -1199,6 +817,8 @@ glm::mat4 scaleinplace(glm::mat4 base, glm::vec3 p, float s)
 }
 
 // 원점 기준 크기 b/B 위치까지 원점에서 멀어지거나 가까워짐
+// 사용법 drawobj(scaleorigin(world, glm::vec3(0.5f, 0, 0), s), glm::vec3(0.3f), cs, 36);
+// 칸 순서  scaleorigin( 기준 행렬,  자리 위치,  배율 )
 glm::mat4 scaleorigin(glm::mat4 base, glm::vec3 p, float s)
 {
 	glm::mat4 m = glm::scale(base, glm::vec3(s));
@@ -1206,12 +826,26 @@ glm::mat4 scaleorigin(glm::mat4 base, glm::vec3 p, float s)
 }
 
 // 경첩 기준 회전 pivot 점을 지나는 axis 축으로 angle 도
-// 문 열기 면 열기 팔다리 흔들기 전부 이것
-// 사용법 육면체 앞면을 윗변 기준으로 열기 실습15 f
-//   glm::mat4 f = hinge(cube, glm::vec3(0, 0.5f, 0.5f), AX, -openangle);
-//   drawwith(f, GL_TRIANGLES, start + F_FRONT * 6, 6);
-// 사각뿔 앞면을 바닥 모서리 기준으로 열기 실습16
-//   hinge(py, glm::vec3(0, -0.5f, 0.5f), AX, openangle)  양수가 바깥쪽
+// 문 열기 면 열기 팔다리 흔들기 포신 깃대 전부 이것
+// 칸 순서  hinge( 기준 행렬,  경첩 위치,  회전 축,  각도 )
+//   기준 행렬  부품이 붙어 있는 몸체의 행렬  그 몸체 가운데가 0 0 0
+//   경첩 위치  붙은 곳이 기준 가운데에서 얼마나 떨어졌나  실제 길이
+//              앞면 윗변  0 높이/2 깊이/2     앞면 가운데  0 0 깊이/2     윗면 가운데  0 높이/2 0
+//   회전 축    AY 좌우로 흔들기   AX 앞뒤로 까딱   AZ 화면에서 시계처럼
+//   각도       상태 변수  반대 방향은 앞에 마이너스
+//   결과 행렬은 기준 가운데로 돌아와 있음  기준 가운데에서 부품 가운데까지 translate 한 번 더 하고 drawobj
+// 사용법 실습19 포신 깊이 0.5 상부 몸체 up1 앞면에 붙음 좌우로 흔들기
+//   glm::mat4 b1 = hinge(up1, glm::vec3(0, 0, 0.25f), AY, barrelangle);
+//   drawobj(glm::translate(b1, glm::vec3(0, 0, 0.5f)), glm::vec3(0.05f, 0.05f, 0.5f), bs, 36);   포신 길이 0.5  0.25 + 0.25
+//   오른쪽은 hinge(up2, 같은 경첩, AY, -barrelangle)
+// 사용법 실습19 깃대 높이 0.1 상부 몸체 윗면에 붙음 앞뒤로 까딱
+//   glm::mat4 f1 = hinge(up1, glm::vec3(0, 0.05f, 0), AX, flagangle);
+//   drawobj(glm::translate(f1, glm::vec3(0, 0.3f, 0)), glm::vec3(0.1f, 0.5f, 0.1f), fs, 36);   깃대 높이 0.5  0.05 + 0.25
+// 사용법 크기 S 육면체 앞면을 윗변 기준으로 열기 실습15 f
+//   glm::mat4 f = hinge(cube, glm::vec3(0, S / 2, S / 2), AX, -openangle);
+//   drawobj(f, glm::vec3(S), start + F_FRONT * 6, 6);
+// 크기 S 사각뿔 앞면을 바닥 모서리 기준으로 열기 실습16
+//   drawobj(hinge(py, glm::vec3(0, -S / 2, S / 2), AX, openangle), glm::vec3(S), start + 0 * 3, 3)  양수가 바깥쪽
 glm::mat4 hinge(glm::mat4 base, glm::vec3 pivot, glm::vec3 axis, float angle)
 {
 	glm::mat4 m = glm::translate(base, pivot);
@@ -1220,6 +854,9 @@ glm::mat4 hinge(glm::mat4 base, glm::vec3 pivot, glm::vec3 axis, float angle)
 }
 
 // 면 하나를 제자리에서 작게 뒷면 사라지기 실습15 b  면 가운데 c 기준
+// 사용법 크기 S 육면체 뒷면 가운데 기준으로 작게
+//       drawobj(shrinkface(cube, glm::vec3(0, 0, -S / 2), s), glm::vec3(S), cs + F_BACK * 6, 6);
+// 칸 순서  shrinkface( 기준 행렬,  면 가운데 위치,  배율 )
 glm::mat4 shrinkface(glm::mat4 base, glm::vec3 c, float s)
 {
 	glm::mat4 m = glm::translate(base, c);
@@ -1229,6 +866,9 @@ glm::mat4 shrinkface(glm::mat4 base, glm::vec3 c, float s)
 
 // 한 변 기준으로 위쪽으로 납작해지며 열리기 문 슬라이드 실습23 앞면
 // top 은 윗변 높이 h 는 면 높이 s 는 1 닫힘 0 열림
+// 사용법 크기 S 육면체 앞면 위로 접히듯 열기 s 는 1 닫힘 0 열림
+//       drawobj(slideup(cube, S / 2, s), glm::vec3(S), cs + F_FRONT * 6, 6);
+// 칸 순서  slideup( 기준 행렬,  윗변 높이,  남은 비율 1 닫힘 0 열림 )
 glm::mat4 slideup(glm::mat4 base, float top, float s)
 {
 	glm::mat4 m = glm::translate(base, glm::vec3(0.0f, top, 0.0f));
@@ -1238,11 +878,19 @@ glm::mat4 slideup(glm::mat4 base, float top, float s)
 
 // 두 물체 자리 바꾸기 진행도 t 0 ~ 1 실습17
 // 원점 지나며 직선으로 바꾸기 t 키
+// 사용법 전역 float swapt = 0; 키에서 켜고 drawScene 에서 swapt 를 0 에서 1 까지 늘림
+//       glm::vec3 a(-0.2f, 0.1f, 0), b(0.2f, 0.1f, 0);
+//       glm::mat4 up1 = glm::translate(mid, swapline(a, b, swapt));
+//       glm::mat4 up2 = glm::translate(mid, swapline(b, a, swapt));
+// 칸 순서  swapline( 출발 위치,  도착 위치,  진행도 0 ~ 1 )  결과는 위치 vec3
 glm::vec3 swapline(glm::vec3 from, glm::vec3 to, float t)
 {
 	return from + (to - from) * t;
 }
 // 하나는 위로 하나는 아래로 반원 그리며 바꾸기 u 키 up 은 1 또는 -1
+// 사용법 glm::mat4 m1 = glm::translate(world, swaparc(a, b, swapt, 0.5f, 1.0f));    위로
+//       glm::mat4 m2 = glm::translate(world, swaparc(b, a, swapt, 0.5f, -1.0f));   아래로
+// 칸 순서  swaparc( 출발 위치,  도착 위치,  진행도 0 ~ 1,  반원 높이,  1 위로 -1 아래로 )
 glm::vec3 swaparc(glm::vec3 from, glm::vec3 to, float t, float h, float up)
 {
 	glm::vec3 p = from + (to - from) * t;
@@ -1251,13 +899,17 @@ glm::vec3 swaparc(glm::vec3 from, glm::vec3 to, float t, float h, float up)
 }
 
 // 걷기 팔다리 흔들기 각도 phase 를 매 프레임 증가 max 가 최대 각도
+// 사용법 전역 float phase = 0;  drawScene 에서 phase += 0.1f; float sw = swingangle(phase, 30.0f);
+// 칸 순서  swingangle( 진행 값 매 프레임 증가,  최대 각도 )  결과는 각도
 float swingangle(float phase, float maxangle)
 {
 	return sin(phase) * maxangle;
 }
 
 // 계층 예 로봇 팔다리 실습23 그대로 쓰면 됨
-// robot 은 발바닥 위치와 방향 cubestart 는 addcube 시작 번호
+// robot 은 발바닥 위치와 방향  각 start 는 cube.obj 를 그 색으로 적은 시작 번호 꼭짓점 36개
+// 사용법 공책에 cube.obj 를 색만 바꿔 다섯 번 적기 body head nose left right
+//       drawrobot(glm::translate(glm::mat4(1.0f), glm::vec3(rx, 0, rz)), sw, body, head, nose, left, right);
 void drawrobot(glm::mat4 robot, float swing, int bodystart, int headstart, int nosestart, int leftstart, int rightstart)
 {
 	for (int i = 0; i < 2; i++) {
@@ -1265,36 +917,41 @@ void drawrobot(glm::mat4 robot, float swing, int bodystart, int headstart, int n
 		int part = (i == 0) ? leftstart : rightstart;
 		// 다리 엉덩이 높이 0.28 기준으로 흔들기
 		glm::mat4 leg = hinge(robot, glm::vec3(0.055f * side, 0.28f, 0.0f), AX, swing * side);
-		drawcube(glm::translate(leg, glm::vec3(0.055f * side, 0.14f, 0.0f)), glm::vec3(0.08f, 0.28f, 0.08f), part);
+		drawobj(glm::translate(leg, glm::vec3(0.055f * side, 0.14f, 0.0f)), glm::vec3(0.08f, 0.28f, 0.08f), part, 36);
 		// 팔 어깨 높이 0.56 기준 다리와 반대로
 		glm::mat4 arm = hinge(robot, glm::vec3(0.155f * side, 0.56f, 0.0f), AX, -swing * side);
-		drawcube(glm::translate(arm, glm::vec3(0.155f * side, 0.44f, 0.0f)), glm::vec3(0.07f, 0.24f, 0.07f), part);
+		drawobj(glm::translate(arm, glm::vec3(0.155f * side, 0.44f, 0.0f)), glm::vec3(0.07f, 0.24f, 0.07f), part, 36);
 	}
-	drawcube(glm::translate(robot, glm::vec3(0.0f, 0.43f, 0.0f)), glm::vec3(0.24f, 0.3f, 0.14f), bodystart);
+	drawobj(glm::translate(robot, glm::vec3(0.0f, 0.43f, 0.0f)), glm::vec3(0.24f, 0.3f, 0.14f), bodystart, 36);
 	glm::mat4 head = glm::translate(robot, glm::vec3(0.0f, 0.66f, 0.0f));
-	drawcube(head, glm::vec3(0.16f), headstart);
-	drawcube(glm::translate(head, glm::vec3(0.0f, 0.0f, 0.1f)), glm::vec3(0.04f, 0.04f, 0.05f), nosestart);   // 코는 앞 +z
+	drawobj(head, glm::vec3(0.16f), headstart, 36);
+	drawobj(glm::translate(head, glm::vec3(0.0f, 0.0f, 0.1f)), glm::vec3(0.04f, 0.04f, 0.05f), nosestart, 36);   // 코는 앞 +z
 }
 
 // 이동 방향 dx dz 로 몸 돌리는 각도 로봇 탱크가 가는 쪽 보기
+// 사용법 robot = glm::rotate(robot, glm::radians(yawof(dx, dz)), AY);   가는 방향으로 몸 돌리기
 float yawof(float dx, float dz)
 {
 	return glm::degrees(atan2(dx, dz));
 }
 
 // 행렬이 옮긴 위치 꺼내기 달 궤도 중심을 행성 위치로 할 때 실습18
+// 사용법 glm::vec3 c = posof(planet1);   행성 행렬에서 지금 위치 꺼내기
 glm::vec3 posof(glm::mat4 m)
 {
 	return glm::vec3(m * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 }
 
 // 3D 상자끼리 겹치나 가운데 c 반크기 h
+// 사용법 if (boxhit(p1, glm::vec3(0.1f), p2, glm::vec3(0.2f))) { 부딪힘 }
 bool boxhit(glm::vec3 c1, glm::vec3 h1, glm::vec3 c2, glm::vec3 h2)
 {
 	return fabs(c1.x - c2.x) < h1.x + h2.x && fabs(c1.y - c2.y) < h1.y + h2.y && fabs(c1.z - c2.z) < h1.z + h2.z;
 }
 
 // 방 안에서 공 튕기기 벽 lo hi 반지름 rad 실습21
+// 사용법 전역 glm::vec3 ballp(0), ballv(0.01f, 0.02f, 0.015f);
+//       drawScene 에서 bounce3d(ballp, ballv, glm::vec3(-1.0f), glm::vec3(1.0f), 0.1f);   방 -1 ~ 1 공 반지름 0.1
 void bounce3d(glm::vec3& p, glm::vec3& v, glm::vec3 lo, glm::vec3 hi, float rad)
 {
 	p += v;
@@ -1305,6 +962,7 @@ void bounce3d(glm::vec3& p, glm::vec3& v, glm::vec3 lo, glm::vec3 hi, float rad)
 }
 
 // 점프 중력 y 높이 vy 속도 ground 발밑 높이 땅이면 true
+// 사용법 키에서 if (ry <= 0.0f) rvy = 0.06f;   drawScene 에서 jumpstep(ry, rvy, 0.0f);
 bool jumpstep(float& y, float& vy, float ground)
 {
 	vy -= 0.003f;
@@ -1317,7 +975,9 @@ bool jumpstep(float& y, float& vy, float ground)
 // =====================================================================
 // [15] 카메라 투영 뷰포트 여러 개
 // =====================================================================
-// 투영 원근 직각 바꾸기 p/P
+// 투영 원근 직각 바꾸기 키는 문제마다 다름 실습18 은 p 직각 P 원근
+// 사용법 setproj(makeproj(perspectiveon, (float)width / height, 1.5f));   bool perspectiveon 은 상태 변수
+// 칸 순서  makeproj( true 원근 false 직각,  가로 나누기 세로,  직각일 때 보이는 반높이 )
 glm::mat4 makeproj(bool perspective, float aspect, float orthosize)
 {
 	if (perspective)
@@ -1326,12 +986,17 @@ glm::mat4 makeproj(bool perspective, float aspect, float orthosize)
 }
 
 // 고정 카메라 eye 에서 at 을 봄
+// 사용법 setview(lookcam(glm::vec3(0, 2, 5), glm::vec3(0)));   (0 2 5) 에서 원점 보기
+// 칸 순서  lookcam( 카메라 위치,  바라보는 점 )
 glm::mat4 lookcam(glm::vec3 eye, glm::vec3 at)
 {
 	return glm::lookAt(eye, at, AY);
 }
 
 // 카메라 자전 제자리에서 보는 방향만 돎 yaw 0 이면 -z 를 봄 pitch 는 아래로 숙이는 양
+// 사용법 전역 glm::vec3 campos(0, 2, 5); float camyaw = 0;   y 키로 camyaw 증가
+//       setview(yawcam(campos, camyaw, 0.3f));
+// 칸 순서  yawcam( 카메라 위치,  좌우 도는 각도,  아래로 숙이는 양 )
 glm::mat4 yawcam(glm::vec3 pos, float yaw, float pitch)
 {
 	glm::vec3 dir(-sin(glm::radians(yaw)), -pitch, -cos(glm::radians(yaw)));
@@ -1339,6 +1004,9 @@ glm::mat4 yawcam(glm::vec3 pos, float yaw, float pitch)
 }
 
 // 카메라 공전 원점 y축 기준 위치 pos 를 a 도 돌림 같이 원점을 바라보게 하려면 yaw 도 a 만큼 더함
+// 사용법 전역 float camorbit = 0;   r 키로 camorbit 증가
+//       setview(lookcam(orbitpos(glm::vec3(0, 2, 5), camorbit), glm::vec3(0)));
+// 칸 순서  orbitpos( 처음 카메라 위치,  공전 각도 )  결과는 위치 vec3
 glm::vec3 orbitpos(glm::vec3 pos, float a)
 {
 	float r = glm::radians(a);
@@ -1346,6 +1014,7 @@ glm::vec3 orbitpos(glm::vec3 pos, float a)
 }
 
 // 쿼터뷰 중심을 비스듬히 위에서 거리 dist 각도 angle 높이 비율 hr
+// 사용법 setview(quartercam(5.0f, 45.0f, 0.6f, glm::vec3(0)));
 glm::mat4 quartercam(float dist, float angle, float hr, glm::vec3 center)
 {
 	float a = glm::radians(angle);
@@ -1355,6 +1024,7 @@ glm::mat4 quartercam(float dist, float angle, float hr, glm::vec3 center)
 
 // 뷰포트 하나 자리 잡고 그 칸만 지우기 화면 나누기 실습22
 // 사용법 drawScene 안에서 칸마다 setviewport 그다음 setproj setview 그다음 같은 그리기 함수
+// 칸 순서  setviewport( 왼쪽 아래 x,  y,  폭,  높이,  배경 r,  g,  b )  픽셀 단위
 void setviewport(int x, int y, int w, int h, float r, float g, float b)
 {
 	glViewport(x, y, w, h);              // 왼쪽 아래가 x y
@@ -1366,6 +1036,7 @@ void setviewport(int x, int y, int w, int h, float r, float g, float b)
 }
 
 // 평면도 위에서 내려다보기 xz 평면 화면 위쪽이 -z
+// 사용법 setproj(makeproj(false, aspect, 2.0f)); setview(topview());   평면도 정면도 측면도는 보통 직각 투영
 glm::mat4 topview()
 {
 	return glm::lookAt(glm::vec3(0.0f, 10.0f, 0.0f), glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
@@ -1479,13 +1150,26 @@ bool liangclip(float& x1, float& y1, float& x2, float& y2, float xl, float yb, f
 // =====================================================================
 // [18] 예제 장면 drawScene KeyCallback 마우스 콜백
 // =====================================================================
-// 실행해서 함수들이 제대로 도는지 확인하는 용도 문제 풀 때 통째로 갈아엎으면 됨
+// 틀의 [문제 풀이] 를 통째로 지우고 이것으로 바꾸면 실행됨  cube sphere pyramid obj 필요
+// 함수 쓰는 예 보는 용도 문제 풀 때는 필요한 부분만
 // m 2D 3D 바꾸기
 // 2D  왼쪽 클릭 사각형 만들기 드래그 이동  오른쪽 클릭 삭제  1 튕기기  2 지그재그  3 테두리  c 전부 삭제
 // 3D  x/X y/Y 자전  r/R 공전  o 앞면 열기  p/P 원근 직각  w/W 와이어 솔리드  h 은면제거  화살표 이동
 // q ESC 종료
 
 bool mode3d = true;
+
+// obj 담는 곳
+std::vector<Vertex> cubev, spherev, pyv;
+std::vector<Face> cubef, spheref, pyf;
+
+// obj 읽기 main 에서 한 번
+void initobj()
+{
+	loadobj("cube.obj", cubev, cubef);
+	loadobj("sphere.obj", spherev, spheref);
+	loadobj("pyramid.obj", pyv, pyf);
+}
 
 // 2D 상태
 int anim2d = 0;              // 0 멈춤 1 튕기기 2 지그재그 3 테두리
@@ -1567,12 +1251,12 @@ void draw3d()
 	addaxes(1.5f);
 	float fc[6][3] = { { 1, 1, 0 }, { 0, 1, 1 }, { 1, 0, 1 }, { 1, 0.5f, 0 }, { 0.6f, 0.6f, 0.6f }, { 0.5f, 0, 1 } };
 	int cubestart = n;
-	addcubefaces(fc);
+	addcubefaces(cubev, cubef, fc);
 	float pc[5][3] = { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 }, { 1, 1, 0 }, { 0.5f, 0.5f, 0.5f } };
 	int pystart = n;
-	addpyramid(pc);
+	addpyramidfaces(pyv, pyf, pc);
 	int spherestart = n;
-	addsphere(12, 20, 0.3f, 0.8f, 1.0f);
+	addobjshade(spherev, spheref, 0.3f, 0.8f, 1.0f);
 	int spherecount = n - spherestart;
 	int orbitstart = n;
 	addorbit(72, 0.7f, 0.7f, 0.7f);
@@ -1593,20 +1277,20 @@ void draw3d()
 
 	glPolygonMode(GL_FRONT_AND_BACK, wireon ? GL_LINE : GL_FILL);
 
-	// 왼쪽 육면체 제자리 자전 앞면은 윗변 기준으로 열림
+	// 왼쪽 육면체 크기 S 제자리 자전 앞면은 윗변 기준으로 열림
+	float S = 0.6f;
 	glm::mat4 cube = spinat(world, glm::vec3(-0.8f + movex, movey, 0.0f), spinx, spiny);
-	cube = glm::scale(cube, glm::vec3(0.6f));
 	for (int k = 1; k < 6; k++)
-		drawwith(cube, GL_TRIANGLES, cubestart + k * 6, 6);
-	drawwith(hinge(cube, glm::vec3(0.0f, 0.5f, 0.5f), AX, -openangle), GL_TRIANGLES, cubestart + F_FRONT * 6, 6);
+		drawobj(cube, glm::vec3(S), cubestart + k * 6, 6);
+	drawobj(hinge(cube, glm::vec3(0.0f, S / 2, S / 2), AX, -openangle), glm::vec3(S), cubestart + F_FRONT * 6, 6);
 
 	// 오른쪽 사각뿔 제자리 자전
 	glm::mat4 py = spinat(world, glm::vec3(0.8f + movex, movey, 0.0f), spinx, spiny);
-	drawwith(glm::scale(py, glm::vec3(0.6f)), GL_TRIANGLES, pystart, 18);
+	drawobj(py, glm::vec3(S), pystart, 18);
 
-	// 구 원점 y축 공전 궤도 반지름 1.2
+	// 구 지름 0.4 원점 y축 공전 궤도 반지름 1.2
 	glm::mat4 ball = orbity(world, orbitangle, 1.2f);
-	drawwith(glm::scale(ball, glm::vec3(0.4f)), GL_TRIANGLES, spherestart, spherecount);
+	drawobj(ball, glm::vec3(0.4f), spherestart, spherecount);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
@@ -1759,8 +1443,12 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 //   gy = 1 - my / height * 2  y 뒤집기
 // 키 한 번에 여러 번 실행
 //   GLFW_REPEAT 까지 받는 블록에 켜고 끄는 키를 넣었음 PRESS 블록으로
-// obj 가 안 읽힌다
-//   파일 위치 cpp 옆  f 줄에 슬래시 있는지  번호 1 빼기
+// obj 가 안 읽힌다 콘솔에 열기 실패
+//   파일 위치 cpp 와 같은 프로젝트 폴더  VS 에서 Ctrl F5  initobj 에 loadobj 넣었는지
+// obj 크기가 생각과 다르다
+//   obj 는 크기 0.6  drawobj(m, 실제 크기, ...) 로 그리면 그 크기  drawwith 로 그리면 0.6 그대로
+// 재정의 에러
+//   틀에 있는 함수를 창고에서 또 붙였음 맨 위 목록 확인
 // 공책 넘침
-//   MAXV 키우기 구 obj 는 하나에 2880 개
+//   MAXV 키우기 sphere.obj 는 하나에 꼭짓점 2880 개
 // =====================================================================
