@@ -1,4 +1,34 @@
 // =====================================================================
+// 시험장 라이브러리 설치  틀 붙이기 전에 먼저
+// =====================================================================
+// 받을 것
+//   GLEW  glew.sourceforge.net  Windows 32-bit and 64-bit Binaries zip
+//   GLFW  glfw.org Download  64-bit Windows binaries zip
+//   GLM   github.com/g-truc/glm  Releases zip
+//
+// 기준 폴더  C:\Program Files (x86)\Windows Kits\10 폴더
+//   Include 와 Lib 아래 버전 폴더 하나 있음  이 컴퓨터는 10.0.26100.0  시험장은 숫자 다를 수 있음 있는 것 쓰기
+//
+// 넣을 곳
+//   glew.h wglew.h 등       glew include\GL       →  Include\버전\um\GL 폴더
+//   glfw3.h glfw3native.h   glfw include\GLFW     →  Include\버전\um\GL 폴더   GLFW 폴더 말고 GL 폴더
+//   glm 폴더 통째로         glm 압축 안 glm 폴더  →  Include\버전\um\GL\glm
+//   glew32.lib              glew lib\Release\x64  →  Lib\버전\um\x64 폴더
+//   glfw3.lib               glfw lib-vc2022       →  Lib\버전\um\x64 폴더
+//   glew32.dll              glew bin\Release\x64  →  C:\Windows\System32 폴더
+//   glfw3.h 를 GL 폴더에 넣는 이유  틀이 #include <GL/glfw3.h> 로 부름
+//
+// 확인  새 프로젝트에 코테틀 붙이고 cube.obj 같은 폴더  Ctrl F5  파란 육면체 나오면 성공
+//   틀 맨 위 #pragma comment 세 줄이 링커 설정 대신이라 프로젝트 설정 안 건드려도 됨
+//
+// 잘 나는 문제
+//   glew.h 를 열 수 없음      헤더를 다른 버전 폴더나 GL 폴더 밖에 넣음
+//   LNK2019                   lib 를 x86 폴더에 넣음 x64 로  또는 VS 위쪽 플랫폼 x86 을 x64 로
+//   glew32.dll 없다고 뜸      System32 에 dll 없음  권한 없으면 dll 을 cpp 있는 프로젝트 폴더에
+//   복사할 때 권한 거부       Program Files System32 는 관리자 권한 필요  계속 누르기
+
+
+// =====================================================================
 // 컴그 코테 창고 obj 버전
 // =====================================================================
 // 기능 복붙용 창고 이 파일 혼자서는 실행 안 됨
