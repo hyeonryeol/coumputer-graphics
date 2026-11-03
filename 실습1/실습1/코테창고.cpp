@@ -951,6 +951,52 @@ void pingpong(float& a, int& dir, float limit, float step)
 	if (a <= -limit) { a = -limit; dir = 1; }
 }
 
+// 컨베이어 벨트 상자 끝에서 사라지고 처음에서 다시 나타나기 실습20
+// 원리  벨트가 움직인 거리 offset 은 계속 커짐  fmod 로 경로 길이로 나눈 나머지를 쓰면 끝에서 0 으로 돌아감
+//   경로 길이 6.6 일 때  offset 6.5 면 s 6.5 끝 바로 앞   offset 6.7 이면 s 0.1 처음
+// 상자마다 간격 gap 만큼 앞뒤로 벌려서 줄지어 감
+// 사용법 전역  float beltoffset = 0.0f; bool beltmove = false;
+//       drawScene 에서  if (beltmove) beltoffset += 0.01f;
+//       키  b 로 beltmove = !beltmove;   리셋은 beltoffset = 0
+
+// 일자 벨트  from 에서 to 로 가다가 끝나면 from 으로
+// 사용법 상자 5개 0.8 간격  i 가 클수록 뒤에 섬
+//   for (int i = 0; i < 5; i++) {
+//       glm::vec3 p = beltline(glm::vec3(-2, 0.15f, 0), glm::vec3(2, 0.15f, 0), beltoffset, 0.8f, i);
+//       drawobj(glm::translate(glm::mat4(1.0f), p), glm::vec3(0.3f), box[i], 36);
+//   }
+// 칸 순서  beltline( 시작 위치,  끝 위치,  벨트가 움직인 거리,  상자 간격,  상자 번호 )
+glm::vec3 beltline(glm::vec3 from, glm::vec3 to, float offset, float gap, int i)
+{
+	float len = glm::length(to - from);
+	float s = fmod(offset - i * gap + len * 100.0f, len);   // 음수 안 되게 len 여러 번 더함
+	return from + (to - from) * (s / len);
+}
+
+// ㄱ자 벨트  start 에서 -z 로 seg 만큼 간 다음 코너에서 +x 로 seg 만큼  실습20 모양
+// 위치는 lpathpos  방향은 lpathyaw  코너 앞뒤 0.3 에서 0 도에서 -90 도로 천천히 돎
+// 사용법 실습20  start (-1.5, 0.6, 1.8)  seg 3.3  경로 길이 seg * 2
+//   for (int i = 0; i < 5; i++) {
+//       float s = fmod(beltoffset + (4 - i) * 1.3f, 3.3f * 2);   1번이 맨 앞
+//       glm::mat4 box = glm::translate(glm::mat4(1.0f), lpathpos(glm::vec3(-1.5f, 0.6f, 1.8f), 3.3f, s) + glm::vec3(0, 0.15f, 0));
+//       box = glm::rotate(box, glm::radians(lpathyaw(3.3f, s)), AY);
+//       drawobj(box, glm::vec3(0.3f), boxs[i], 36);
+//   }
+// 칸 순서  lpathpos( 시작 위치,  한 구간 길이,  경로 위 거리 )   lpathyaw( 한 구간 길이,  경로 위 거리 )
+glm::vec3 lpathpos(glm::vec3 start, float seg, float s)
+{
+	if (s < seg)
+		return start + glm::vec3(0.0f, 0.0f, -s);
+	return start + glm::vec3(s - seg, 0.0f, -seg);
+}
+float lpathyaw(float seg, float s)
+{
+	float a = seg - 0.3f, b = seg + 0.3f;
+	if (s <= a) return 0.0f;
+	if (s >= b) return -90.0f;
+	return -90.0f * (s - a) / (b - a);
+}
+
 // 계층 예 로봇 팔다리 실습23 그대로 쓰면 됨
 // robot 은 발바닥 위치와 방향  각 start 는 cube.obj 를 그 색으로 적은 시작 번호 꼭짓점 36개
 // 사용법 공책에 cube.obj 를 색만 바꿔 다섯 번 적기 body head nose left right
