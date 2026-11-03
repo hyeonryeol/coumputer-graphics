@@ -747,6 +747,29 @@ void addfloor(float r, float g, float b)
 	addvertex(-0.5f, 0, 0.5f, r, g, b); addvertex(0.5f, 0, -0.5f, r, g, b); addvertex(-0.5f, 0, -0.5f, r, g, b);
 }
 
+// 두 색 체크무늬 바닥  칸 하나 크기 1 을 칸 수 x 칸 수 만큼 옮겨 그림  가운데가 원점
+// 사용법 공책 적기  int blue = n; addfloor(0.2f, 0.2f, 1.0f);
+//                  int white = n; addfloor(0.9f, 0.9f, 0.9f);
+//       그리기     drawchecker(glm::mat4(1.0f), 4, blue, white);   4 x 4 바닥
+//       y 회전 따라가면 안 되니 기준은 glm::mat4(1.0f)
+// 칸 순서  drawchecker( 기준 행렬,  한 줄 칸 수,  첫 색 시작 번호,  둘째 색 시작 번호 )
+// 원리  칸 위치는 i - 1.5  1.5 는 칸 수 빼기 1 나누기 2   i + j 가 짝수면 첫 색 홀수면 둘째 색
+//   i=0 j=0  위치 -1.5 -1.5  0 짝수 첫 색
+//   i=1 j=0  위치 -0.5 -1.5  1 홀수 둘째 색
+void drawchecker(glm::mat4 base, int count, int first, int second)
+{
+	float half = (count - 1) / 2.0f;
+	for (int i = 0; i < count; i++)
+	{
+		for (int j = 0; j < count; j++)
+		{
+			glm::mat4 cell = glm::translate(base, glm::vec3(i - half, 0.0f, j - half));
+			int start = ((i + j) % 2 == 0) ? first : second;
+			drawwith(cell, GL_TRIANGLES, start, 6);
+		}
+	}
+}
+
 
 // =====================================================================
 // [13] obj 읽기 쓰는 법
@@ -768,6 +791,14 @@ void addfloor(float r, float g, float b)
 //   제자리 회전 크기   먼저 translate 로 자리 잡고 그다음 rotate scale
 //   공전              먼저 rotate 그다음 translate 거리
 //   자식 부품은 부모 행렬에서 이어서 곱함
+//   앞 변환에 이어 붙이기  m = translate(m, ...)   glm::mat4(1.0f) 에서 시작하면 앞 변환 버려짐
+//     glm::mat4 m = orbity(glm::mat4(1.0f), a2, 1.0f);
+//     m = glm::translate(m, glm::vec3(0.0f, 0.5f, 0.0f));     공전 자리에서 위로 0.5
+//   같은 기준에서 부품 여러 개  기준을 변수로 두고 부품마다 기준에서 새로 시작
+//     glm::mat4 base = orbity(glm::mat4(1.0f), a2, 1.0f);
+//     glm::mat4 m1 = glm::translate(base, glm::vec3(-1.0f, 0.5f, 0.0f));   drawobj(m1, ...);
+//     glm::mat4 m2 = glm::translate(base, glm::vec3( 1.0f, 0.5f, 0.0f));   drawobj(m2, ...);
+//     m 하나로 translate 를 두 번 하면 이동이 쌓임  -1 다음 +1 이면 두 번째는 0 자리
 
 const glm::vec3 AX(1.0f, 0.0f, 0.0f), AY(0.0f, 1.0f, 0.0f), AZ(0.0f, 0.0f, 1.0f);
 
@@ -904,6 +935,20 @@ glm::vec3 swaparc(glm::vec3 from, glm::vec3 to, float t, float h, float up)
 float swingangle(float phase, float maxangle)
 {
 	return sin(phase) * maxangle;
+}
+
+// 왔다갔다 각도  -limit 과 +limit 사이를 step 씩 오감  그네 진자 문 여닫기
+// 사용법 전역  float a1 = 0.0f; int a1dir = 1; bool swinganim = false; float jinja = 30.0f;
+//       drawScene 에서  if (swinganim) pingpong(a1, a1dir, jinja, 1.0f);
+//       그네  glm::mat4 rope = hinge(beam, glm::vec3(0, 0, 0), AX, a1);
+//       진폭 키우기 줄이기는 jinja 만 바꾸면 됨  다음 끝에서 알아서 꺾임
+// 칸 순서  pingpong( 각도,  방향 1 또는 -1,  최대 각도,  한 프레임 이동량 )
+// 실수  끝에서 바꿀 것은 각도가 아니라 방향  dir 시작값 0 이면 안 움직임
+void pingpong(float& a, int& dir, float limit, float step)
+{
+	a += step * dir;
+	if (a >= limit) { a = limit; dir = -1; }
+	if (a <= -limit) { a = -limit; dir = 1; }
 }
 
 // 계층 예 로봇 팔다리 실습23 그대로 쓰면 됨
@@ -1448,6 +1493,13 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 //   카메라가 물체 안에 있음 lookAt eye 를 z 5 정도로  near 가 0 이하
 // 회전이 이상한 곳을 중심으로 돈다
 //   translate rotate 순서 바뀜  제자리는 translate 다음 rotate  공전은 rotate 다음 translate
+//   orbity 반지름이 0 이 아니면 그만큼 떨어진 곳을 축으로 돎  제자리 회전은 반지름 0 이나 rotate
+// 앞에서 한 회전 공전이 사라졌다
+//   m = glm::translate(glm::mat4(1.0f), ...) 로 다시 시작함  glm::translate(m, ...) 으로
+// 같은 크기인데 부품끼리 크기가 달라 보인다
+//   m 하나로 translate 를 이어서 해서 위치가 쌓임  원근이라 멀면 작아 보임  기준 변수에서 새로 시작
+// 왔다갔다가 안 된다 끝에서 떨기만 한다
+//   끝에서 각도를 바꿨음 a = 1  방향을 바꿔야 함 dir = 1  dir 시작값 0 인지도 확인
 // 각도가 너무 빨리 돈다
 //   glm::rotate 는 라디안 glm::radians(각도) 로 감싸기
 // 대문자 키가 안 먹는다
