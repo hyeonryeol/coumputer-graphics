@@ -398,34 +398,41 @@ void addobj(const std::vector<Vertex>& vv, const std::vector<Face>& ff, float r,
 // 코테창고.cpp [6] ~ [17] 에서 필요한 함수 여기 붙여넣기
 // 위에 이미 있는 함수는 또 붙이면 재정의 에러
 const float OBJSIZE = 0.6f;
-const int F_FRONT = 0, F_BACK = 1, F_RIGHT = 2, F_LEFT = 3, F_TOP = 4, F_BOTTOM = 5;
 const glm::vec3 AX(1.0f, 0.0f, 0.0f), AY(0.0f, 1.0f, 0.0f), AZ(0.0f, 0.0f, 1.0f);
-void addobjpart(const std::vector<Vertex>& vv, const std::vector<Face>& ff, int first, int cnt, float r, float g, float b)
+
+void drawchecker(glm::mat4 base, int count, int first, int second)
 {
-	for (int i = first; i < first + cnt && i < (int)ff.size(); i++) {
-		int id[3] = { ff[i].a, ff[i].b, ff[i].c };
-		for (int j = 0; j < 3; j++)
-			addvertex(vv[id[j]].x, vv[id[j]].y, vv[id[j]].z, r, g, b);
+	float half = (count - 1) / 2.0f;
+	for (int i = 0; i < count; i++)
+	{
+		for (int j = 0; j < count; j++)
+		{
+			glm::mat4 cell = glm::translate(base, glm::vec3(i - half, 0.0f, j - half));
+			int start = ((i + j) % 2 == 0) ? first : second;
+			drawwith(cell, GL_TRIANGLES, start, 6);
+		}
 	}
 }
-void addcubefaces(const std::vector<Vertex>& vv, const std::vector<Face>& ff, float fc[6][3])
+void addfloor(float r, float g, float b)
 {
-	for (int k = 0; k < 6; k++)
-		addobjpart(vv, ff, k * 2, 2, fc[k][0], fc[k][1], fc[k][2]);
+	addvertex(-0.5f, 0, 0.5f, r, g, b); addvertex(0.5f, 0, 0.5f, r, g, b); addvertex(0.5f, 0, -0.5f, r, g, b);
+	addvertex(-0.5f, 0, 0.5f, r, g, b); addvertex(0.5f, 0, -0.5f, r, g, b); addvertex(-0.5f, 0, -0.5f, r, g, b);
 }
 void drawobj(glm::mat4 m, glm::vec3 s, int start, int count)
 {
 	drawwith(glm::scale(m, s / OBJSIZE), GL_TRIANGLES, start, count);
 }
-glm::mat4 slideup(glm::mat4 base, float top, float s)
+
+glm::mat4 hinge(glm::mat4 base, glm::vec3 pivot, glm::vec3 axis, float angle)
 {
-	glm::mat4 m = glm::translate(base, glm::vec3(0.0f, top, 0.0f));
-	m = glm::scale(m, glm::vec3(1.0f, s, 1.0f));
-	return glm::translate(m, glm::vec3(0.0f, -top, 0.0f));
+	glm::mat4 m = glm::translate(base, pivot);
+	m = glm::rotate(m, glm::radians(angle), axis);
+	return glm::translate(m, -pivot);
 }
-glm::mat4 lookcam(glm::vec3 eye, glm::vec3 at)
+glm::mat4 orbity(glm::mat4 base, float a, float r)
 {
-	return glm::lookAt(eye, at, AY);
+	glm::mat4 m = glm::rotate(base, glm::radians(a), AY);
+	return glm::translate(m, glm::vec3(r, 0.0f, 0.0f));
 }
 // =====================================================================
 // [문제 풀이]
@@ -440,21 +447,22 @@ void initobj()
 }
 
 // 상태 변수 여기
+float a1 = 0.0f;
+bool apress = false;
+int a1dir = 0;
+float jinja = 30.0f;
 float s = 1.0f;
-bool open = false;
-float camerax = 0.0f;
-float cameray = 2.0f;
-float cameraz = 5.0f;
-float robotx = 0.0f;
-float robotz = 0.0f;
+float a2 = 0.0f;
+
 // 처음 상태 s 키 리셋에도 사용
 void resetall()
 {
+	a1 = 0.0f;
+	apress = false;
+	a1dir = 0;
+	jinja = 30.0f;
 	s = 1.0f;
-	open = false;
-	camerax = 0.0f;
-	cameray = 2.0f;
-	cameraz = 5.0f;
+	a2 = 0.0f;
 }
 
 // 그리기 매 프레임
@@ -466,33 +474,66 @@ void drawScene()
 	// 공책 비우고 적기
 	n = 0;
 	int cube = n;
-	addobj(cubev, cubef, 0.3f, 0.6f, 1.0f);
+	addobj(cubev, cubef, 1.0f, 0.5f, 0.5f);
 	int cubecount = n - cube;
-	float fc[6][3] = { {1,0,0}, {0,1,0}, {0,0,1}, {1,1,0}, {0,1,1}, {1,0,1} };
-	int cs = n; addcubefaces(cubev, cubef, fc);
+	int blue = n; addfloor(0.2f, 0.2f, 1.0f);
+	int white = n; addfloor(0.9f, 0.9f, 0.9f);
 	int cube2 = n;
-	addobj(cubev, cubef, 0.5f, 0.6f, 0.6f);
-	if (open == true)
+	addobj(cubev, cubef, 1.0f, 0.0f, 1.0f);
+	int cube3 = n;
+	addobj(cubev, cubef, 0.0f, 0.5f, 1.0f);
+
+	int cube4 = n;
+	addobj(cubev, cubef, 0.0f, 0.5f, 0.0f);
+	if (apress == true)
 	{
-		if(s > 0)
-		s -= 0.02f;
+		if (a1 >= jinja)
+		{
+			a1dir = -1;
+		}
+		else if (a1 <= -jinja)
+		{
+			a1dir = 1;
+		}
+		if (a1dir == 1)
+		{
+			a1 += 0.5f;
+		}
+		else if (a1dir == -1)
+		{
+			a1 -= 0.5f;
+		}
 	}
-	robotx += 0.01f;
-	robotz -= 0.01f;
-	
+	a2 += 0.1f;
+
 	upload();
 	setcolor(false);
 
 	// 카메라 원근 투영 z 3 에서 원점 보기
 	setproj(glm::perspective(glm::radians(45.0f), (float)width / height, 0.1f, 100.0f));
-	setview(lookcam(glm::vec3(camerax, cameray, cameraz), glm::vec3(0)));
+	setview(glm::lookAt(glm::vec3(0.0f, 1.0f, 3.0f), glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 
-	glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-	drawobj(m, glm::vec3(3.0f), cs+6, 30);
-	drawobj(slideup(m, 3.0f / 2, s), glm::vec3(3.0f), cs + F_FRONT * 6, 6);
+	drawchecker(glm::mat4(1.0f), 4, blue, white); 
 
-	glm::mat4 robot = glm::translate(glm::mat4(1.0f), glm::vec3(robotx, -1.0f, robotz));
-	drawobj(robot, glm::vec3(0.2f, 0.4f, 0.2f), cube2, cubecount);
+	glm::mat4 m = orbity(glm::mat4(1.0f), a2, 0.0f);
+	
+	drawobj(m, glm::vec3(0.2f, 2.0f, 0.2f), cube, cubecount);
+	m = glm::translate(m, glm::vec3(0.5f, 0.0f, 0.0f));
+	drawobj(m, glm::vec3(0.2f, 2.0f, 0.2f), cube, cubecount);
+	m = glm::translate(m, glm::vec3(0.0f, 0.9f, 0.0f));
+	drawobj(m, glm::vec3(1.0f, 0.2f, 0.2f), cube, cubecount);
+
+
+	glm::mat4 m2 = hinge(m, glm::vec3(0.0f, 0.0f, 0.0f), AX, a1);
+	drawobj(glm::translate(m2, glm::vec3(-0.3f, -0.4f, 0.0f)), glm::vec3(0.1f, 0.8f, 0.1f), cube2, cubecount);
+	drawobj(glm::translate(m2, glm::vec3(0.3f, -0.4f, 0.0f)), glm::vec3(0.1f, 0.8f, 0.1f), cube2, cubecount);
+	drawobj(glm::translate(m2, glm::vec3(0.0f, -0.8f, 0.0f)), glm::vec3(0.8f, 0.1f, 0.2f), cube2, cubecount);
+	//사람
+	drawobj(glm::translate(m2, glm::vec3(0.0f, -0.6f, 0.0f)), glm::vec3(0.2f, 0.3f, 0.2f), cube3, cubecount);
+
+	glm::mat4 m3 = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	drawobj(glm::translate(m3, glm::vec3(0.0f, -0.8f, 0.0f)), glm::vec3(0.3f*s, 0.3f*s, 0.3f*s), cube4, cubecount);
+
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	setcolor(false);
@@ -510,24 +551,6 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 	{
 		switch (key)
 		{
-		case GLFW_KEY_Z:
-			if (mods & GLFW_MOD_SHIFT)
-				cameraz += 0.1f;
-			else
-				cameraz -= 0.1f;
-			break;
-		case GLFW_KEY_X:
-			if (mods & GLFW_MOD_SHIFT)
-				camerax += 0.1f;
-			else
-				camerax -= 0.1f;
-			break;
-		case GLFW_KEY_Y:
-			if (mods & GLFW_MOD_SHIFT)
-				cameray += 0.1f;
-			else
-				cameray -= 0.1f;
-			break;
 		case GLFW_KEY_LEFT:  break;
 		case GLFW_KEY_RIGHT: break;
 		}
@@ -535,7 +558,6 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
 	// 누를 때 한 번 켜고 끄는 키
 	if (action != GLFW_PRESS) return;
-
 	switch (key)
 	{
 	case GLFW_KEY_Q:
@@ -545,9 +567,19 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 	case GLFW_KEY_S:
 		resetall();
 		break;
-	case GLFW_KEY_O:
-		open = !open;
+	case GLFW_KEY_P:
+		apress = !apress;
+		a1dir = 1;
 		break;
+	case GLFW_KEY_EQUAL:
+		if(jinja < 180.0f)
+			jinja += 10.0f;
+		break;
+	case GLFW_KEY_MINUS:
+		if (jinja > 10.0f)
+			jinja -= 10.0f;
+		break;
+	
 	
 	}
 }
