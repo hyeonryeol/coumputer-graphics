@@ -32,8 +32,9 @@ int n = 0;   // 공책에 적힌 꼭짓점 수
 
 
 // 공책 위치
-int cubestart[8];   // 색깔별 육면체 위치
+int cubestart[10];  // 색깔별 육면체 위치
 const int C_FLOOR = 0, C_BELT = 1, C_RAIL = 2, C_LEG = 3, C_STRIPE = 4, C_MARK = 5;
+const int C_CAB = 6, C_GLASS = 7, C_WOOD = 8;
 int boxstart[5];    // 상자 5개 위치
 
 float boxcolor[5][3] = {
@@ -55,6 +56,26 @@ bool beltmove = false;           // b 시작 정지
 float camdist = 6.0f;            // + - 줌
 float camangle = 45.0f;          // 좌우 화살표 회전
 bool perspectiveon = true;       // p 원근 P 직각
+bool firstperson = false;        // v 1인칭 3인칭
+int viewbox = 4;                 // 1인칭으로 볼 상자 처음은 5번
+
+// 트럭 벨트 앞 구간 왼쪽 +z를 바라봄
+const float TRUCKX = -3.0f;
+const float TRUCKHALF = 0.9f;    // 트럭 앞뒤 반 길이
+const float FLOORHALF = 4.0f;    // 바닥 반 길이
+float truckz = 0.0f;             // 트럭 위치
+int truckdir = 1;                // 1 앞으로 -1 뒤로
+bool truckmove = false;          // g 출발 정지
+
+// 트럭에 실은 상자
+bool loaded[5];                  // 실렸는지
+int loadslot[5];                 // 짐칸 자리 번호
+int loadcount = 0;               // 실은 수
+float slotpos[6][2] = {          // 짐칸 자리 x z
+	{ -0.2f, 0.05f }, { 0.2f, 0.05f },
+	{ -0.2f, -0.3f }, { 0.2f, -0.3f },
+	{ -0.2f, -0.65f }, { 0.2f, -0.65f },
+};
 
 void resetall()
 {
@@ -63,6 +84,14 @@ void resetall()
 	camdist = 6.0f;
 	camangle = 45.0f;
 	perspectiveon = true;
+	firstperson = false;
+	viewbox = 4;
+	truckz = 0.0f;
+	truckdir = 1;
+	truckmove = false;
+	for (int i = 0; i < 5; i++)
+		loaded[i] = false;
+	loadcount = 0;
 }
 
 int main()
@@ -289,26 +318,89 @@ float pathyaw(float s)
 	return -90.0f * (s - a) / (b - a);
 }
 
+// 트럭 위치 행렬
+glm::mat4 truckmatrix()
+{
+	return glm::translate(glm::mat4(1.0f), glm::vec3(TRUCKX, 0.0f, truckz));
+}
+
+// 상자 i 위치 행렬 벨트 위 또는 짐칸
+glm::mat4 boxmatrix(int i)
+{
+	if (loaded[i]) {
+		int k = loadslot[i];
+		return glm::translate(truckmatrix(), glm::vec3(slotpos[k][0], 0.57f, slotpos[k][1]));
+	}
+	float s = fmod(beltoffset + (4 - i) * 1.3f, PATHLEN);   // 1번이 맨 앞
+	glm::mat4 box = glm::translate(glm::mat4(1.0f), pathpos(s) + glm::vec3(0.0f, 0.15f, 0.0f));
+	return glm::rotate(box, glm::radians(pathyaw(s)), glm::vec3(0.0f, 1.0f, 0.0f));
+}
+
+// 상자 i 앞 방향 벨트 위는 -z 기준으로 돌고 짐칸은 트럭 앞
+glm::vec3 boxforward(int i)
+{
+	if (loaded[i])
+		return glm::vec3(0.0f, 0.0f, 1.0f);
+	return glm::vec3(boxmatrix(i) * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
+}
+
+// 트럭 이동 바닥 끝이면 멈추고 다음엔 반대로
+void movetruck()
+{
+	if (!truckmove)
+		return;
+	truckz += 0.02f * truckdir;
+	if (truckz + TRUCKHALF >= FLOORHALF || truckz - TRUCKHALF <= -FLOORHALF) {
+		truckz = glm::clamp(truckz, -FLOORHALF + TRUCKHALF, FLOORHALF - TRUCKHALF);
+		truckmove = false;
+		truckdir = -truckdir;
+	}
+}
+
+// 트럭 그리기 앞이 +z
+void drawtruck()
+{
+	glm::mat4 t = truckmatrix();
+	// 바닥 틀
+	drawcube(glm::translate(t, glm::vec3(0.0f, 0.3f, 0.0f)), glm::vec3(1.0f, 0.12f, 1.8f), cubestart[C_LEG]);
+	// 바퀴 4개
+	float wheel[4][2] = { { -0.52f, 0.55f }, { 0.52f, 0.55f }, { -0.52f, -0.55f }, { 0.52f, -0.55f } };
+	for (int k = 0; k < 4; k++)
+		drawcube(glm::translate(t, glm::vec3(wheel[k][0], 0.15f, wheel[k][1])), glm::vec3(0.14f, 0.3f, 0.3f), cubestart[C_LEG]);
+	// 운전석과 앞 유리
+	drawcube(glm::translate(t, glm::vec3(0.0f, 0.66f, 0.6f)), glm::vec3(1.0f, 0.6f, 0.55f), cubestart[C_CAB]);
+	drawcube(glm::translate(t, glm::vec3(0.0f, 0.75f, 0.88f)), glm::vec3(0.8f, 0.25f, 0.02f), cubestart[C_GLASS]);
+	// 짐칸 바닥 양옆 뒤 벽
+	drawcube(glm::translate(t, glm::vec3(0.0f, 0.39f, -0.3f)), glm::vec3(1.0f, 0.06f, 1.15f), cubestart[C_WOOD]);
+	drawcube(glm::translate(t, glm::vec3(-0.48f, 0.57f, -0.3f)), glm::vec3(0.04f, 0.3f, 1.15f), cubestart[C_WOOD]);
+	drawcube(glm::translate(t, glm::vec3(0.48f, 0.57f, -0.3f)), glm::vec3(0.04f, 0.3f, 1.15f), cubestart[C_WOOD]);
+	drawcube(glm::translate(t, glm::vec3(0.0f, 0.57f, -0.86f)), glm::vec3(1.0f, 0.3f, 0.04f), cubestart[C_WOOD]);
+}
+
 // 그리기
 void drawScene()
 {
 	if (beltmove)
 		beltoffset += 0.01f;
+	movetruck();
 
 	glClearColor(0.55f, 0.75f, 0.95f, 1.0f);   // 하늘
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// 여기서 공책 채우기
 	n = 0;
-	float cc[6][3] = {
+	float cc[9][3] = {
 		{ 0.3f, 0.35f, 0.3f },    // 바닥
 		{ 0.45f, 0.45f, 0.48f },  // 벨트 판
 		{ 0.85f, 0.7f, 0.1f },    // 난간 노랑
 		{ 0.08f, 0.08f, 0.08f },  // 다리 검정
 		{ 0.2f, 0.2f, 0.22f },    // 줄무늬
 		{ 0.05f, 0.05f, 0.05f },  // 번호 점
+		{ 0.62f, 0.62f, 0.66f },  // 운전석 회색
+		{ 0.2f, 0.35f, 0.5f },    // 앞 유리
+		{ 0.55f, 0.38f, 0.2f },   // 짐칸 나무
 	};
-	for (int i = 0; i < 6; i++) {
+	for (int i = 0; i < 9; i++) {
 		cubestart[i] = n;
 		addcube(cc[i][0], cc[i][1], cc[i][2]);
 	}
@@ -328,7 +420,7 @@ void drawScene()
 	// 투영
 	glm::mat4 projection;
 	float aspect = (float)width / height;
-	if (perspectiveon)
+	if (perspectiveon || firstperson)
 		projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
 	else
 	{
@@ -338,10 +430,16 @@ void drawScene()
 	unsigned int projLocation = glGetUniformLocation(shaderProgramID, "projectionTransform");
 	glUniformMatrix4fv(projLocation, 1, GL_FALSE, glm::value_ptr(projection));
 
-	// 쿼터뷰 카메라 중심을 비스듬히 위에서 봄
+	// 3인칭 쿼터뷰 카메라 중심을 비스듬히 위에서 봄
 	float a = glm::radians(camangle);
 	glm::vec3 eye = glm::vec3(camdist * sin(a), camdist * 0.8f, camdist * cos(a));
 	glm::mat4 view = glm::lookAt(eye, glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	// 1인칭 상자 윗면 바로 위에서 상자 앞 방향을 봄 짐칸에서는 운전석에 가려서 지붕 위 높이로
+	if (firstperson) {
+		float eyeh = loaded[viewbox] ? 0.7f : 0.25f;
+		glm::vec3 boxeye = glm::vec3(boxmatrix(viewbox) * glm::vec4(0.0f, eyeh, 0.0f, 1.0f));
+		view = glm::lookAt(boxeye, boxeye + boxforward(viewbox), glm::vec3(0.0f, 1.0f, 0.0f));
+	}
 	unsigned int viewLocation = glGetUniformLocation(shaderProgramID, "viewTransform");
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
 
@@ -393,11 +491,14 @@ void drawScene()
 		}
 	}
 
-	// 택배 상자 5개 1.3 간격으로 경로를 돌고 끝나면 처음부터
+	drawtruck();
+
+	// 택배 상자 5개 1.3 간격으로 경로를 돌고 끝나면 처음부터 실린 상자는 짐칸에
 	for (int i = 0; i < 5; i++) {
-		float s = fmod(beltoffset + (4 - i) * 1.3f, PATHLEN);   // 1번이 맨 앞
-		glm::mat4 box = glm::translate(I, pathpos(s) + glm::vec3(0.0f, 0.15f, 0.0f));
-		box = glm::rotate(box, glm::radians(pathyaw(s)), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 box = boxmatrix(i);
+		// 1인칭으로 보는 상자는 안 그림 자기 몸이 화면을 가려서
+		if (firstperson && i == viewbox)
+			continue;
 		drawcube(box, glm::vec3(0.3f), boxstart[i]);
 
 		// 번호 윗면에 점 i+1개
@@ -448,6 +549,32 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 			break;
 		case GLFW_KEY_R:          // 리셋
 			resetall();
+			break;
+		case GLFW_KEY_1:          // 1 ~ 5 그 상자 트럭에 싣기
+		case GLFW_KEY_2:
+		case GLFW_KEY_3:
+		case GLFW_KEY_4:
+		case GLFW_KEY_5:
+		{
+			int i = key - GLFW_KEY_1;
+			if (!loaded[i]) {
+				loaded[i] = true;
+				loadslot[i] = loadcount;
+				loadcount++;
+			}
+			break;
+		}
+		case GLFW_KEY_V:          // 1인칭 3인칭
+			firstperson = !firstperson;
+			break;
+		case GLFW_KEY_N:          // n 다음 상자 N 이전 상자
+			if (shift)
+				viewbox = (viewbox + 4) % 5;
+			else
+				viewbox = (viewbox + 1) % 5;
+			break;
+		case GLFW_KEY_G:          // 트럭 출발 정지
+			truckmove = !truckmove;
 			break;
 		}
 	}
