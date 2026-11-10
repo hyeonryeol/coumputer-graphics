@@ -71,6 +71,9 @@ bool truckmove = false;          // g 출발 정지
 bool loaded[5];                  // 실렸는지
 int loadslot[5];                 // 짐칸 자리 번호
 int loadcount = 0;               // 실은 수
+float flyt[5];                   // 날아가는 진행도 1이면 도착
+glm::vec3 flyfrom[5];            // 날아가기 시작한 위치
+float flyyaw[5];                 // 날아가기 시작한 방향
 float slotpos[6][2] = {          // 짐칸 자리 x z
 	{ -0.2f, 0.05f }, { 0.2f, 0.05f },
 	{ -0.2f, -0.3f }, { 0.2f, -0.3f },
@@ -89,8 +92,10 @@ void resetall()
 	truckz = 0.0f;
 	truckdir = 1;
 	truckmove = false;
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 5; i++) {
 		loaded[i] = false;
+		flyt[i] = 1.0f;
+	}
 	loadcount = 0;
 }
 
@@ -329,7 +334,23 @@ glm::mat4 boxmatrix(int i)
 {
 	if (loaded[i]) {
 		int k = loadslot[i];
-		return glm::translate(truckmatrix(), glm::vec3(slotpos[k][0], 0.57f, slotpos[k][1]));
+		glm::mat4 slot = glm::translate(truckmatrix(), glm::vec3(slotpos[k][0], 0.57f, slotpos[k][1]));
+		if (flyt[i] >= 1.0f)
+			return slot;
+		// 위로 올라가고 옆으로 가고 아래로 내려감 구간마다 처음과 끝은 느리게
+		glm::vec3 from = flyfrom[i], to = glm::vec3(slot[3]);
+		float top = glm::max(from.y, to.y) + 0.8f;
+		float t = flyt[i];
+		float up = glm::clamp(t / 0.3f, 0.0f, 1.0f);
+		float side = glm::clamp((t - 0.3f) / 0.4f, 0.0f, 1.0f);
+		float down = glm::clamp((t - 0.7f) / 0.3f, 0.0f, 1.0f);
+		up = up * up * (3.0f - 2.0f * up);
+		side = side * side * (3.0f - 2.0f * side);
+		down = down * down * (3.0f - 2.0f * down);
+		glm::vec3 p = glm::mix(from, to, side);
+		p.y = glm::mix(glm::mix(from.y, top, up), to.y, down);
+		glm::mat4 box = glm::translate(glm::mat4(1.0f), p);
+		return glm::rotate(box, glm::radians(glm::mix(flyyaw[i], 0.0f, side)), glm::vec3(0.0f, 1.0f, 0.0f));
 	}
 	float s = fmod(beltoffset + (4 - i) * 1.3f, PATHLEN);   // 1번이 맨 앞
 	glm::mat4 box = glm::translate(glm::mat4(1.0f), pathpos(s) + glm::vec3(0.0f, 0.15f, 0.0f));
@@ -383,6 +404,9 @@ void drawScene()
 	if (beltmove)
 		beltoffset += 0.01f;
 	movetruck();
+	for (int i = 0; i < 5; i++)
+		if (loaded[i] && flyt[i] < 1.0f)
+			flyt[i] = glm::min(flyt[i] + 0.015f, 1.0f);
 
 	glClearColor(0.55f, 0.75f, 0.95f, 1.0f);   // 하늘
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -558,6 +582,10 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		{
 			int i = key - GLFW_KEY_1;
 			if (!loaded[i]) {
+				float s = fmod(beltoffset + (4 - i) * 1.3f, PATHLEN);
+				flyfrom[i] = glm::vec3(boxmatrix(i)[3]);
+				flyyaw[i] = pathyaw(s);
+				flyt[i] = 0.0f;
 				loaded[i] = true;
 				loadslot[i] = loadcount;
 				loadcount++;

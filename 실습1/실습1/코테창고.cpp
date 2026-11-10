@@ -65,6 +65,7 @@
 //   [17] 윈도우 뷰포트 변환 클리핑 계산
 //   [18] 예제 장면 틀의 [문제 풀이] 를 통째로 바꾸면 실행됨
 //   [19] 자주 나는 실수 체크
+//   [20] 조명 퐁 조명 모델 주변 산란 거울 실습26 27
 // =====================================================================
 
 
@@ -1592,4 +1593,182 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 //   틀에 있는 함수를 창고에서 또 붙였음 맨 위 목록 확인
 // 공책 넘침
 //   MAXV 키우기 sphere.obj 는 하나에 꼭짓점 2880 개
+// 조명 넣었더니 물체가 새까맣다
+//   initlight 안 부름  upload 를 uploadlit 으로 안 바꿈  addobj 로 적어서 법선이 0
+//   setlight 조명 색이 0  조명이 물체 안이나 뒤에 있음
+// 조명이 반대쪽 면을 밝힌다
+//   법선이 안쪽 obj 면 순서가 시계 방향이면 cross 두 변 순서 바꾸기
+// 조명 표시 도형과 밝은 곳이 안 맞는다
+//   setlight 위치는 월드 좌표  world 로 기울였으면 glm::vec3(world * glm::vec4(pos, 1.0f)) 로 보내기
+// 반짝이는 점이 안 보인다
+//   setlight 에 카메라 위치를 lookAt eye 와 똑같이  평평한 육면체는 점이 작음 shininess 128 을 32 로
+// =====================================================================
+
+
+// =====================================================================
+// [20] 조명 퐁 조명 모델
+// =====================================================================
+// 최종 색 = 주변 + 산란 + 거울 에 물체 색 곱하기  물체 색은 공책에 적은 색
+//   주변 ambient   0.3 곱하기 조명 색  방향 상관없이 고르게 밝음
+//   산란 diffuse   N 과 L 내적 곱하기 조명 색  조명 쪽을 보는 면이 밝음  음수는 0
+//   거울 specular  V 와 R 내적의 shininess 제곱 곱하기 조명 색  반짝이는 점  음수는 0
+//   N 면의 법선  L 면에서 조명 쪽  V 면에서 카메라 쪽  R 빛이 반사되는 방향
+// 조명 색 곱하기 재질 색  흰 조명과 빨간 물체는 빨강  빨간 조명과 파란 물체는 검정
+// 퐁 셰이딩은 법선을 보간하고 프래그먼트 셰이더에서 조명 계산  고라우드는 꼭짓점에서 계산하고 색을 보간
+// 법선이 꼭짓점마다 하나 더 필요해서 법선 공책 하나 VBO 하나 attribute 2번 추가
+//
+// 붙이는 법
+//   1. 틀의 셰이더 문자열 vertexSource fragmentSource 두 개를 아래 두 개로 통째로 바꾸기
+//      조명 uniform 을 안 보내면 예전처럼 공책 색 그대로 나와서 다른 문제에도 그대로 써도 됨
+//   2. 아래 normal 부터 setlight 까지 [창고 붙이는 자리] 에 붙이기
+//   3. initobj 맨 앞에 initlight(); 한 줄
+//   4. drawScene 의 upload(); 를 uploadlit(); 로
+//   5. 조명 받을 obj 는 addobj 대신 addobjlit  구는 addspherelit
+//   6. 그리기 전에 setlight(켜기, 조명 위치, 조명 색, 카메라 위치);
+//   7. 축 궤도 조명 표시처럼 조명 안 받을 것은 setcolor(true, r, g, b) 로 그리고 setcolor(false)
+
+// 법선은 물체가 돌면 같이 돌아야 해서 모델 행렬로 변환  강의 코드는 vNormal 그대로라 회전하면 틀림
+const char* vertexSource = R"(
+#version 330 core
+layout (location = 0) in vec3 vPosition;
+layout (location = 1) in vec3 vColor;
+layout (location = 2) in vec3 vNormal;
+out vec3 out_Color;
+out vec3 FragPos;
+out vec3 Normal;
+uniform mat4 modelTransform;
+uniform mat4 viewTransform;
+uniform mat4 projectionTransform;
+void main()
+{
+	gl_Position = projectionTransform * viewTransform * modelTransform * vec4(vPosition, 1.0);
+	out_Color = vColor;
+	FragPos = vec3(modelTransform * vec4(vPosition, 1.0));
+	Normal = mat3(transpose(inverse(modelTransform))) * vNormal;
+}
+)";
+
+// useColor 가 먼저라 setcolor 로 그린 것은 조명 안 받음
+const char* fragmentSource = R"(
+#version 330 core
+in vec3 out_Color;
+in vec3 FragPos;
+in vec3 Normal;
+out vec4 FragColor;
+uniform int useColor;
+uniform vec3 uColor;
+uniform int useLight;
+uniform vec3 lightPos;
+uniform vec3 lightColor;
+uniform vec3 viewPos;
+void main()
+{
+	if (useColor == 1) { FragColor = vec4(uColor, 1.0); return; }
+	if (useLight == 0) { FragColor = vec4(out_Color, 1.0); return; }
+	vec3 ambient = 0.3 * lightColor;
+	vec3 N = normalize(Normal);
+	vec3 L = normalize(lightPos - FragPos);
+	vec3 diffuse = max(dot(N, L), 0.0) * lightColor;
+	vec3 V = normalize(viewPos - FragPos);
+	vec3 R = reflect(-L, N);
+	vec3 specular = pow(max(dot(V, R), 0.0), 128.0) * lightColor;
+	FragColor = vec4((ambient + diffuse + specular) * out_Color, 1.0);
+}
+)";
+
+// 법선 공책 position color 와 같은 번호
+GLfloat normal[MAXV][3];
+GLuint nvbo;
+
+// 법선 VBO 만들기 attribute 2번  InitBuffer 다음에 한 번  initobj 맨 앞에서 부르면 됨
+void initlight()
+{
+	glBindVertexArray(vao);
+	glGenBuffers(1, &nvbo);
+	glBindBuffer(GL_ARRAY_BUFFER, nvbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(normal), normal, GL_DYNAMIC_DRAW);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(2);
+}
+
+// upload 대신 이것  좌표 색 다음 법선까지 올림
+void uploadlit()
+{
+	upload();
+	glBindBuffer(GL_ARRAY_BUFFER, nvbo);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, n * 3 * sizeof(GLfloat), normal);
+}
+
+// 법선 붙여서 점 하나
+void addvertexn(glm::vec3 p, glm::vec3 nm, float r, float g, float b)
+{
+	if (n < MAXV) {
+		normal[n][0] = nm.x;
+		normal[n][1] = nm.y;
+		normal[n][2] = nm.z;
+	}
+	addvertex(p.x, p.y, p.z, r, g, b);
+}
+
+// 면마다 법선 하나 육면체 사각뿔처럼 모서리가 각진 것
+// obj 면이 바깥에서 반시계라 두 변 cross 가 바깥 방향
+// 사용법 공책 적기  int cs = n; addobjlit(cubev, cubef, 0, 1, 0); int csc = n - cs;
+//       그리기     drawobj(m, glm::vec3(0.6f), cs, csc);
+void addobjlit(const std::vector<Vertex>& vv, const std::vector<Face>& ff, float r, float g, float b)
+{
+	for (const Face& f : ff) {
+		glm::vec3 p0(vv[f.a].x, vv[f.a].y, vv[f.a].z);
+		glm::vec3 p1(vv[f.b].x, vv[f.b].y, vv[f.b].z);
+		glm::vec3 p2(vv[f.c].x, vv[f.c].y, vv[f.c].z);
+		glm::vec3 nm = glm::normalize(glm::cross(p1 - p0, p2 - p0));
+		addvertexn(p0, nm, r, g, b);
+		addvertexn(p1, nm, r, g, b);
+		addvertexn(p2, nm, r, g, b);
+	}
+}
+
+// 구는 가운데에서 꼭짓점 쪽이 법선이라 면 사이가 매끈  가운데가 원점인 구만
+// 사용법 공책 적기  int sp = n; addspherelit(spherev, spheref, 1, 0, 0); int spc = n - sp;
+//       그리기     drawobj(m, glm::vec3(0.5f), sp, spc);
+void addspherelit(const std::vector<Vertex>& vv, const std::vector<Face>& ff, float r, float g, float b)
+{
+	for (const Face& f : ff) {
+		int id[3] = { f.a, f.b, f.c };
+		for (int j = 0; j < 3; j++) {
+			glm::vec3 p(vv[id[j]].x, vv[id[j]].y, vv[id[j]].z);
+			addvertexn(p, glm::normalize(p), r, g, b);
+		}
+	}
+}
+
+// 조명 켜기 위치 색 카메라 위치 보내기  위치는 월드 좌표
+// 끄면 공책 색 그대로  끄면 어둡게 하라는 문제면 켠 채로 조명 색만 glm::vec3(0.0f)
+// 사용법 setlight(lighton, lightpos, glm::vec3(1.0f), eye);   eye 는 lookAt 의 eye 와 같게
+void setlight(bool on, glm::vec3 pos, glm::vec3 col, glm::vec3 eye)
+{
+	glUniform1i(glGetUniformLocation(shaderProgramID, "useLight"), on ? 1 : 0);
+	glUniform3f(glGetUniformLocation(shaderProgramID, "lightPos"), pos.x, pos.y, pos.z);
+	glUniform3f(glGetUniformLocation(shaderProgramID, "lightColor"), col.x, col.y, col.z);
+	glUniform3f(glGetUniformLocation(shaderProgramID, "viewPos"), eye.x, eye.y, eye.z);
+}
+
+// 실습26 예  조명이 물체 앞 z 쪽에서 y축 공전  y 자전  r R 공전  z Z 거리  m 켜기 끄기  n 육면체 사각뿔
+//   상태     float spin = 0, la = 0, ld = 1.2f; bool lighton = true, showpy = false;
+//   조명     glm::vec3 lp(ld * sin(glm::radians(la)), 0.0f, ld * cos(glm::radians(la)));   la 0 이면 앞쪽 z
+//   공책     int cs = n; addobjlit(cubev, cubef, 0, 1, 0); int csc = n - cs;
+//            int ps = n; addobjlit(pyv, pyf, 0, 1, 0); int psc = n - ps;
+//            int orb = n; addorbit(72, 0, 0.4f, 0);
+//   그리기   uploadlit(); setproj(...); glm::vec3 eye(0, 1.5f, 3); setview(glm::lookAt(eye, glm::vec3(0.0f), glm::vec3(0, 1, 0)));
+//            setlight(lighton, lp, glm::vec3(1.0f), eye);
+//            glm::mat4 obj = glm::rotate(glm::mat4(1.0f), glm::radians(spin), glm::vec3(0, 1, 0));
+//            if (showpy) drawobj(obj, glm::vec3(0.6f), ps, psc); else drawobj(obj, glm::vec3(0.6f), cs, csc);
+//            setcolor(true, 0.7f, 0.7f, 0.7f);
+//            drawobj(glm::translate(glm::mat4(1.0f), lp), glm::vec3(0.12f), cs, csc);              조명 표시
+//            setcolor(true, 0, 0.4f, 0);
+//            drawwith(glm::scale(glm::mat4(1.0f), glm::vec3(ld)), GL_LINE_LOOP, orb, 72);        궤도 반지름 ld
+//            setcolor(false);
+//   키       z ld -= 0.1f  Z ld += 0.1f  궤도도 ld 로 그려서 같이 바뀜
+// 실습27 예  구 세 개 addspherelit 로 색만 다르게 세 번 적기  c 조명 색 세 가지 돌리기
+//            glm::vec3 lc[3] = { glm::vec3(1, 1, 1), glm::vec3(1, 1, 0), glm::vec3(0, 1, 1) }; int li = 0;
+//            c 키 li = (li + 1) % 3;   setlight(true, lp, lc[li], eye);
 // =====================================================================
