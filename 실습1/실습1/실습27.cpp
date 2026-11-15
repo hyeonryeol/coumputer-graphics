@@ -11,14 +11,11 @@
 #include <sstream>   // istringstream
 #include <vector>    // vector
 
-
-
 struct Vertex { float x, y, z; };   // 점 하나
 struct Face { int a, b, c; };       // 삼각형 하나 = 점 번호 3개
 
 std::vector<Vertex> spherev;        // 구 점 목록
 std::vector<Face> spheref;          // 구 삼각형 목록
-
 
 // 사용자 정의 함수
 std::string filetobuf(const char* file);
@@ -29,52 +26,33 @@ void InitBuffer();
 void drawScene();
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-
 // 필요한 변수
-GLint width = 600, height = 600;
+GLint width = 800, height = 600;
 GLuint shaderProgramID;
 GLuint vertexShader;
 GLuint fragmentShader;
 GLuint vao, vbo[2];
 
-// 꼭짓점 공책
-GLfloat position[22000][3];
-GLfloat color[22000][3];
+// 꼭짓점 공책 위치와 법선
+GLfloat position[5000][3];
+GLfloat normal[5000][3];
 int n = 0;   // 공책에 적힌 꼭짓점 수
 
-const int CIRCLE = 72;               // 궤도 원 꼭짓점 수
-int circlestart, circlecount;        // 공책에서 궤도 원 위치
-int sunstart, suncount;              // 공책에서 중심 구 위치
-int planetstart[3], moonstart[3];    // 공책에서 행성 달 위치
-int spherecount;                     // 구 하나 꼭짓점 수
+int spherestart, spherecount;   // 공책에서 구 위치
+int cubestart;                  // 공책에서 조명 표시 육면체 위치
 
-// 색
-float planetcolor[3][3] = { { 0.1f, 0.7f, 0.2f }, { 0.95f, 0.55f, 0.1f }, { 0.6f, 0.2f, 0.8f } };
-float mooncolor[3][3] = { { 0.9f, 0.1f, 0.1f }, { 1.0f, 0.45f, 0.75f }, { 0.55f, 0.35f, 0.15f } };
+// 구 세 개 가운데 빨강 왼쪽에 초록 파랑
+glm::vec3 ballpos[3] = { { 0.0f, 0.0f, 0.0f }, { -1.5f, 0.0f, 0.0f }, { -2.5f, 0.0f, 0.0f } };
+float ballsize[3] = { 1.6f, 1.05f, 0.8f };
+glm::vec3 ballcolor[3] = { { 1.0f, 0.1f, 0.1f }, { 0.1f, 0.9f, 0.1f }, { 0.15f, 0.2f, 1.0f } };
 
-// 공전
-float planetangle[3] = { 0.0f, 120.0f, 240.0f };   // 행성 공전 각도
-float planetspeed[3] = { 1.0f, 0.6f, 1.4f };        // 행성마다 다른 속도
-float pathtilt[3] = { 0.0f, 45.0f, -45.0f };        // 경로 기울기 z축 기준
-float moonangle[3] = { 0.0f, 90.0f, 180.0f };       // 달 공전 각도
-float moonspeed[3] = { 3.0f, 2.2f, 4.0f };
-float orbitr = 1.2f;                                 // 행성 궤도 반지름
-float moonr = 0.3f;                                  // 달 궤도 반지름
-float radiusscale = 1.0f;                            // 1번 키 궤도 크기
+// 조명
+glm::vec3 lightcolor[3] = { { 1.0f, 1.0f, 1.0f }, { 1.0f, 0.85f, 0.4f }, { 0.45f, 0.75f, 1.0f } };   // 흰색 노랑 하늘
+int lightcolorindex = 0;      // c 조명 색 번호
+float lightangle = 0.0f;      // r R 가운데 구 y축 기준 회전 각도
+float lightdist = 2.0f;       // 가운데 구에서 조명까지 거리, 처음에는 화면 앞쪽
 
-// 키 상태
-bool perspectiveon = true;   // p 직각 P 원근
-bool wireon = false;         // m 솔리드 M 와이어
-float movex = 0.0f;          // wasd 이동
-float movey = 0.0f;
-float movez = 0.0f;          // + - 이동
-
-bool sunanim = false;        // 2번 중심 구 확대 축소
-float sunsize = 1.0f;
-int sundir = 1;
-
-bool moonspin = false;       // 3번 달 궤도 자전
-float moonorbitangle = 0.0f;
+glm::vec3 campos = glm::vec3(-0.6f, 0.0f, 6.0f);   // 카메라 위치
 
 // obj 파일 읽기
 void loadobj(const char* name, std::vector<Vertex>& vv, std::vector<Face>& ff)
@@ -183,7 +161,7 @@ std::string filetobuf(const char* file)
 // 버텍스 세이더 객체 만들기
 void make_vertexShaders()
 {
-	std::string vertexSource = filetobuf("vertex18.glsl");
+	std::string vertexSource = filetobuf("vertex27.glsl");
 	const char* source = vertexSource.c_str();
 
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -203,7 +181,7 @@ void make_vertexShaders()
 // 프래그먼트 세이더 객체 만들기
 void make_fragmentShaders()
 {
-	std::string fragmentSource = filetobuf("fragment.glsl");
+	std::string fragmentSource = filetobuf("fragment27.glsl");
 	const char* source = fragmentSource.c_str();
 
 	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -259,209 +237,146 @@ void InitBuffer()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
 
-	// 1번 VBO는 색, attribute 1번
+	// 1번 VBO는 법선, attribute 1번
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(color), color, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(normal), normal, GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(1);
 }
 
-// 궤도 원을 공책에 적기 xz 평면 반지름 1
-void addcircle()
+// 점 하나 공책에 적기
+void addvertex(float x, float y, float z, float nx, float ny, float nz)
 {
-	for (int k = 0; k < CIRCLE; k++) {
-		float t = glm::radians(360.0f * k / CIRCLE);
-		position[n][0] = cos(t);
-		position[n][1] = 0.0f;
-		position[n][2] = sin(t);
-		color[n][0] = 0.45f;
-		color[n][1] = 0.45f;
-		color[n][2] = 0.45f;
-		n++;
-	}
+	position[n][0] = x;
+	position[n][1] = y;
+	position[n][2] = z;
+	normal[n][0] = nx;
+	normal[n][1] = ny;
+	normal[n][2] = nz;
+	n++;
 }
 
-// 구 하나를 공책에 적기
-void addsphere(float r, float g, float b)
+// 구 하나를 공책에 적기, 가운데가 원점이라 법선은 위치 방향
+void addsphere()
 {
 	for (int k = 0; k < spheref.size(); k++) {
 		int idx[3] = { spheref[k].a, spheref[k].b, spheref[k].c };
 		for (int j = 0; j < 3; j++) {
-			position[n][0] = spherev[idx[j]].x;
-			position[n][1] = spherev[idx[j]].y;
-			position[n][2] = spherev[idx[j]].z;
-			color[n][0] = r;
-			color[n][1] = g;
-			color[n][2] = b;
-			n++;
+			Vertex v = spherev[idx[j]];
+			glm::vec3 nv = glm::normalize(glm::vec3(v.x, v.y, v.z));
+			addvertex(v.x, v.y, v.z, nv.x, nv.y, nv.z);
 		}
 	}
 }
 
-// 행렬 보내고 그리기
-void drawwith(glm::mat4 m, GLenum mode, int start, int count)
+// 크기 1 육면체 공책에 적기, 면마다 바깥 방향 법선
+void addcube()
 {
-	unsigned int modelLocation = glGetUniformLocation(shaderProgramID, "modelTransform");
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(m));
-	glDrawArrays(mode, start, count);
+	float p[8][3] = {
+		{ -0.5f, -0.5f,  0.5f }, { 0.5f, -0.5f,  0.5f }, { 0.5f, 0.5f,  0.5f }, { -0.5f, 0.5f,  0.5f },
+		{ -0.5f, -0.5f, -0.5f }, { 0.5f, -0.5f, -0.5f }, { 0.5f, 0.5f, -0.5f }, { -0.5f, 0.5f, -0.5f },
+	};
+	// 앞 뒤 오른 왼 위 아래 바깥에서 보면 반시계
+	int face[6][4] = { { 0, 1, 2, 3 }, { 5, 4, 7, 6 }, { 1, 5, 6, 2 }, { 4, 0, 3, 7 }, { 3, 2, 6, 7 }, { 4, 5, 1, 0 } };
+	float nv[6][3] = { { 0, 0, 1 }, { 0, 0, -1 }, { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 } };
+	int order[6] = { 0, 1, 2, 0, 2, 3 };
+	for (int k = 0; k < 6; k++)
+		for (int j = 0; j < 6; j++) {
+			int v = face[k][order[j]];
+			addvertex(p[v][0], p[v][1], p[v][2], nv[k][0], nv[k][1], nv[k][2]);
+		}
+}
+
+// 행렬과 색 보내고 그리기
+void drawwith(glm::mat4 m, glm::vec3 c, int start, int count)
+{
+	glUniformMatrix4fv(glGetUniformLocation(shaderProgramID, "model"), 1, GL_FALSE, glm::value_ptr(m));
+	glUniform3f(glGetUniformLocation(shaderProgramID, "objectColor"), c.x, c.y, c.z);
+	glDrawArrays(GL_TRIANGLES, start, count);
+}
+
+// 지금 조명 위치, 가운데 구 y축 기준으로 돌아감
+glm::vec3 lightpos()
+{
+	float a = glm::radians(lightangle);
+	return ballpos[0] + glm::vec3(lightdist * sin(a), 0.4f, lightdist * cos(a));
 }
 
 // 그리기
 void drawScene()
 {
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// 움직임
-	for (int i = 0; i < 3; i++) {
-		planetangle[i] += planetspeed[i];
-		moonangle[i] += moonspeed[i];
-	}
-	if (sunanim)   // 2번 확대 축소
-	{
-		sunsize += 0.01f * sundir;
-		if (sunsize > 1.4f) sundir = -1;
-		if (sunsize < 0.6f) sundir = 1;
-	}
-	if (moonspin)   // 3번 달 궤도 자전
-		moonorbitangle += 1.0f;
 
 	// 여기서 공책 채우기
 	n = 0;
-	circlestart = n;
-	addcircle();
-	circlecount = n - circlestart;
-
-	float t = (sunsize - 0.6f) / 0.8f;   // 크기에 따라 색 바뀜
-	sunstart = n;
-	addsphere(0.0f, 0.2f + 0.6f * t, 1.0f - 0.4f * t);
-	suncount = n - sunstart;
-	spherecount = suncount;
-	for (int i = 0; i < 3; i++) {
-		planetstart[i] = n;
-		addsphere(planetcolor[i][0], planetcolor[i][1], planetcolor[i][2]);
-		moonstart[i] = n;
-		addsphere(mooncolor[i][0], mooncolor[i][1], mooncolor[i][2]);
-	}
+	spherestart = n;
+	addsphere();
+	spherecount = n - spherestart;
+	cubestart = n;
+	addcube();
 
 	// 공책을 창고에 올리기
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, n * 3 * sizeof(GLfloat), position);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, n * 3 * sizeof(GLfloat), color);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, n * 3 * sizeof(GLfloat), normal);
 	glUseProgram(shaderProgramID);
 	glBindVertexArray(vao);
 
-	// 투영
-	glm::mat4 projection;
-	if (perspectiveon)
-		projection = glm::perspective(glm::radians(45.0f), (float)width / height, 0.1f, 100.0f);   // 원근
-	else
-		projection = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, 0.1f, 100.0f);   // 직각
-	unsigned int projLocation = glGetUniformLocation(shaderProgramID, "projectionTransform");
-	glUniformMatrix4fv(projLocation, 1, GL_FALSE, glm::value_ptr(projection));
+	// 원근 투영
+	glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)width / height, 0.1f, 100.0f);
+	glUniformMatrix4fv(glGetUniformLocation(shaderProgramID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-	// 카메라 조금 위에서 내려다봄
-	glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 1.5f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	unsigned int viewLocation = glGetUniformLocation(shaderProgramID, "viewTransform");
-	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
+	// 카메라 앞에서 구 세 개를 봄
+	glm::mat4 view = glm::lookAt(campos, glm::vec3(campos.x, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	glUniformMatrix4fv(glGetUniformLocation(shaderProgramID, "view"), 1, GL_FALSE, glm::value_ptr(view));
 
-	// 전체 이동 wasd + -
-	glm::mat4 base = glm::translate(glm::mat4(1.0f), glm::vec3(movex, movey, movez));
+	// 조명 보내기
+	glm::vec3 lp = lightpos();
+	glm::vec3 lc = lightcolor[lightcolorindex];
+	glUniform3f(glGetUniformLocation(shaderProgramID, "lightPos"), lp.x, lp.y, lp.z);
+	glUniform3f(glGetUniformLocation(shaderProgramID, "lightColor"), lc.x, lc.y, lc.z);
+	glUniform3f(glGetUniformLocation(shaderProgramID, "viewPos"), campos.x, campos.y, campos.z);
+	glUniform1i(glGetUniformLocation(shaderProgramID, "lightOn"), 1);
 
-	// 중심 구
-	glPolygonMode(GL_FRONT_AND_BACK, wireon ? GL_LINE : GL_FILL);
-	drawwith(glm::scale(base, glm::vec3(sunsize)), GL_TRIANGLES, sunstart, suncount);
-
-	float R = orbitr * radiusscale;   // 행성 궤도 반지름
-	float mr = moonr * radiusscale;   // 달 궤도 반지름
-
+	// 구 세 개
+	glUniform1i(glGetUniformLocation(shaderProgramID, "noLight"), 0);
 	for (int i = 0; i < 3; i++) {
-		// 경로 기울이기 z축 기준
-		glm::mat4 path = glm::rotate(base, glm::radians(pathtilt[i]), glm::vec3(0.0f, 0.0f, 1.0f));
-
-		// 행성 궤도
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		drawwith(glm::scale(path, glm::vec3(R)), GL_LINE_LOOP, circlestart, circlecount);
-
-		// 행성 공전
-		glm::mat4 planet = glm::rotate(path, glm::radians(planetangle[i]), glm::vec3(0.0f, 1.0f, 0.0f));
-		planet = glm::translate(planet, glm::vec3(R, 0.0f, 0.0f));
-		glPolygonMode(GL_FRONT_AND_BACK, wireon ? GL_LINE : GL_FILL);
-		drawwith(glm::scale(planet, glm::vec3(0.45f)), GL_TRIANGLES, planetstart[i], spherecount);
-
-		// 달 궤도 중심은 행성 위치 기울기는 따라가지 않음
-		glm::vec4 p = planet * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-		glm::mat4 moonbase = glm::translate(glm::mat4(1.0f), glm::vec3(p));
-		moonbase = glm::rotate(moonbase, glm::radians(moonorbitangle), glm::vec3(0.0f, 0.0f, 1.0f));   // 3번 z축 자전
-
-		// 달 궤도
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		drawwith(glm::scale(moonbase, glm::vec3(mr)), GL_LINE_LOOP, circlestart, circlecount);
-
-		// 달 공전
-		glm::mat4 moon = glm::rotate(moonbase, glm::radians(moonangle[i]), glm::vec3(0.0f, 1.0f, 0.0f));
-		moon = glm::translate(moon, glm::vec3(mr, 0.0f, 0.0f));
-		glPolygonMode(GL_FRONT_AND_BACK, wireon ? GL_LINE : GL_FILL);
-		drawwith(glm::scale(moon, glm::vec3(0.22f)), GL_TRIANGLES, moonstart[i], spherecount);
+		glm::mat4 m = glm::translate(glm::mat4(1.0f), ballpos[i]);
+		m = glm::scale(m, glm::vec3(ballsize[i]));
+		drawwith(m, ballcolor[i], spherestart, spherecount);
 	}
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	// 조명 위치 표시 작은 육면체, 조명 색 그대로
+	glUniform1i(glGetUniformLocation(shaderProgramID, "noLight"), 1);
+	glm::mat4 m = glm::translate(glm::mat4(1.0f), lp);
+	m = glm::scale(m, glm::vec3(0.1f));
+	drawwith(m, lc, cubestart, 36);
 }
 
 // 키보드 콜백
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+	bool shift = (mods & GLFW_MOD_SHIFT);
 	if (action == GLFW_PRESS || action == GLFW_REPEAT)
 	{
-		bool shift = (mods & GLFW_MOD_SHIFT);
+		switch (key)
+		{
+		case GLFW_KEY_R:   // r 양 방향 R 음 방향 회전
+			lightangle += shift ? -5.0f : 5.0f;
+			break;
+		}
+	}
+	if (action == GLFW_PRESS)   // 한 번만
+	{
 		switch (key)
 		{
 		case GLFW_KEY_Q:
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
 			break;
-		case GLFW_KEY_P:   // p 직각 P 원근
-			perspectiveon = shift;
-			break;
-		case GLFW_KEY_M:   // m 솔리드 M 와이어
-			wireon = shift;
-			break;
-		case GLFW_KEY_W:   // 위
-			movey += 0.05f;
-			break;
-		case GLFW_KEY_S:   // 아래
-			movey -= 0.05f;
-			break;
-		case GLFW_KEY_A:   // 왼쪽
-			movex -= 0.05f;
-			break;
-		case GLFW_KEY_D:   // 오른쪽
-			movex += 0.05f;
-			break;
-		case GLFW_KEY_EQUAL:      // + 앞으로
-		case GLFW_KEY_KP_ADD:
-			movez += 0.1f;
-			break;
-		case GLFW_KEY_MINUS:      // - 뒤로
-		case GLFW_KEY_KP_SUBTRACT:
-			movez -= 0.1f;
-			break;
-		case GLFW_KEY_1:   // 1 커짐 shift 1 작아짐
-			if (shift) radiusscale -= 0.1f;
-			else radiusscale += 0.1f;
-			if (radiusscale < 0.5f) radiusscale = 0.5f;
-			if (radiusscale > 1.6f) radiusscale = 1.6f;
-			break;
-		}
-	}
-	if (action == GLFW_PRESS)   // 켜고 끄는 키는 한 번만
-	{
-		switch (key)
-		{
-		case GLFW_KEY_2:   // 중심 구 확대 축소 시작 멈춤
-			sunanim = !sunanim;
-			break;
-		case GLFW_KEY_3:   // 달 궤도 자전 시작 멈춤
-			moonspin = !moonspin;
+		case GLFW_KEY_C:   // 조명 색 세 가지 돌아가며
+			lightcolorindex = (lightcolorindex + 1) % 3;
 			break;
 		}
 	}
