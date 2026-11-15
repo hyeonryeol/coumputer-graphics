@@ -151,7 +151,7 @@ std::string filetobuf(const char* file)
 // 버텍스 세이더 객체 만들기
 void make_vertexShaders()
 {
-	std::string vertexSource = filetobuf("vertex27.glsl");
+	std::string vertexSource = filetobuf("vertex28.glsl");
 	const char* source = vertexSource.c_str();
 
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -171,7 +171,7 @@ void make_vertexShaders()
 // 프래그먼트 세이더 객체 만들기
 void make_fragmentShaders()
 {
-	std::string fragmentSource = filetobuf("fragment27.glsl");
+	std::string fragmentSource = filetobuf("fragment28.glsl");
 	const char* source = fragmentSource.c_str();
 
 	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
