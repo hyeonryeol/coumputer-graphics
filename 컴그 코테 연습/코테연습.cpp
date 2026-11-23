@@ -1,9 +1,29 @@
 // =====================================================================
+// 컴그 코테 합본  코테틀 뒤에 코테창고
+// =====================================================================
+// 이 파일 하나만 있으면 됨
+// 이대로 실행해도 코테틀 부분만 돌아감  창고 부분은 #if 0 으로 꺼 둠
+//
+// 시험장에서
+//   1. 아래 코테틀 시작 부터 코테틀 끝 까지 복사해서 새 cpp 에 붙여넣기
+//      조명 문제면 창고 [20] 붙이는 법대로
+//   2. cube.obj 같은 폴더에 넣고 Ctrl F5  회색 바닥 위 검은 테두리 파란 육면체 나오면 성공
+//   3. 창고 부분에서 필요한 함수만 골라 틀의 [창고 붙이는 자리] 에 붙여넣기
+//      창고 목차는 창고 시작 아래  Ctrl F 로 [번호] 검색
+//   틀 안에 코테창고.cpp 라고 적힌 곳은 이 파일 아래 창고 부분
+// =====================================================================
+
+
+// *********************************************************************
+// 코테틀 시작  여기부터 복사
+// *********************************************************************
+// =====================================================================
 // 컴그 코테 틀
 // =====================================================================
 // 시험 시작하면 제일 먼저 이 파일 통째로 붙여넣기
 // cube.obj 를 cpp 와 같은 프로젝트 폴더에 넣고 Ctrl F5
-// 실행해서 흰 화면에 파란 육면체 하나 나오면 성공 obj 못 찾으면 콘솔에 열기 실패
+// 실행해서 파란 배경에 회색 바닥과 그 위 검은 테두리 파란 육면체가 나오면 성공 obj 못 찾으면 콘솔에 열기 실패
+// R 카메라 y축 공전  S 리셋  Q 종료
 // 그다음 코테창고.cpp 에서 필요한 기능만 골라 붙여넣기
 //   창고 함수 넣는 자리  [창고 붙이는 자리] 검색
 //   문제 푸는 자리      [문제 풀이] 검색  initobj drawScene KeyCallback 마우스 콜백 고치기
@@ -345,11 +365,7 @@ void mousetogl(double mx, double my, float& gx, float& gy)
 	gx = (float)(mx / width * 2.0 - 1.0);
 	gy = (float)(1.0 - my / height * 2.0);
 }
-void addfloor(float r, float g, float b)
-{
-	addvertex(-0.5f, 0, 0.5f, r, g, b); addvertex(0.5f, 0, 0.5f, r, g, b); addvertex(0.5f, 0, -0.5f, r, g, b);
-	addvertex(-0.5f, 0, 0.5f, r, g, b); addvertex(0.5f, 0, -0.5f, r, g, b); addvertex(-0.5f, 0, -0.5f, r, g, b);
-}
+
 
 // =====================================================================
 // obj 파일 읽기
@@ -401,12 +417,20 @@ void addobj(const std::vector<Vertex>& vv, const std::vector<Face>& ff, float r,
 // =====================================================================
 // 코테창고.cpp [6] ~ [17] 에서 필요한 함수 여기 붙여넣기
 // 위에 이미 있는 함수는 또 붙이면 재정의 에러
-
-const float OBJSIZE = 0.6f;
 const glm::vec3 AX(1.0f, 0.0f, 0.0f), AY(0.0f, 1.0f, 0.0f), AZ(0.0f, 0.0f, 1.0f);
+const float OBJSIZE = 0.6f;
 void drawobj(glm::mat4 m, glm::vec3 s, int start, int count)
 {
 	drawwith(glm::scale(m, s / OBJSIZE), GL_TRIANGLES, start, count);
+}
+glm::vec3 orbitpos(glm::vec3 pos, float a)
+{
+	float r = glm::radians(a);
+	return glm::vec3(pos.x * cos(r) + pos.z * sin(r), pos.y, -pos.x * sin(r) + pos.z * cos(r));
+}
+glm::mat4 lookcam(glm::vec3 eye, glm::vec3 at)
+{
+	return glm::lookAt(eye, at, AY);
 }
 glm::mat4 spinat(glm::mat4 base, glm::vec3 p, float ax, float ay)
 {
@@ -415,37 +439,11 @@ glm::mat4 spinat(glm::mat4 base, glm::vec3 p, float ax, float ay)
 	m = glm::rotate(m, glm::radians(ay), AY);
 	return m;
 }
-glm::mat4 scaleinplace(glm::mat4 base, glm::vec3 p, float s)
-{
-	glm::mat4 m = glm::translate(base, p);
-	return glm::scale(m, glm::vec3(s));
-}
-glm::mat4 orbitkeep(glm::mat4 base, float a, glm::vec3 offset)
-{
-	glm::mat4 m = glm::rotate(base, glm::radians(a), AY);
-	m = glm::translate(m, offset);
-	return glm::rotate(m, glm::radians(-a), AY);
-}
 glm::mat4 hinge(glm::mat4 base, glm::vec3 pivot, glm::vec3 axis, float angle)
 {
 	glm::mat4 m = glm::translate(base, pivot);
 	m = glm::rotate(m, glm::radians(angle), axis);
 	return glm::translate(m, -pivot);
-}
-
-glm::mat4 yawcam(glm::vec3 pos, float yaw, float pitch)
-{
-	glm::vec3 dir(-sin(glm::radians(yaw)), -pitch, -cos(glm::radians(yaw)));
-	return glm::lookAt(pos, pos + dir, AY);
-}
-glm::mat4 lookcam(glm::vec3 eye, glm::vec3 at)
-{
-	return glm::lookAt(eye, at, AY);
-}
-glm::vec3 orbitpos(glm::vec3 pos, float a)
-{
-	float r = glm::radians(a);
-	return glm::vec3(pos.x * cos(r) + pos.z * sin(r), pos.y, -pos.x * sin(r) + pos.z * cos(r));
 }
 // =====================================================================
 // [문제 풀이]
@@ -460,206 +458,70 @@ void initobj()
 }
 
 // 상태 변수 여기
-float tankx1 = 0.0f, tankz1 = 0.0f;
-float midangle = 0.0f;
-bool tpress = false;
-bool dpress = false;
-float size = 1.0f;
-int sizedir = 0;
-float a1 = 0.0f;
-bool lpress = false;
-int a1dir = 0;
-float openangle = 0.0f;
-int bs = n;
-bool gpress = false;
-int opendir = 0;
-float flagangle = 0.0f;
-bool ppress = false;
-int flagdir = 0;
-float xview = 0.0f;
-float zview = 4.0f;
-glm::vec3 campos(0, 2, 5); float camyaw = 0;
-int yspin = 0;
 float camorbit = 0;
-bool rpress = false;
+bool camspin = false;
+float gong = 0.0f;
+bool gongjeon = false;
+float a2 = 0.0f;
 
 // 처음 상태 s 키 리셋에도 사용
 void resetall()
 {
-	tankx1 = 0.0f, tankz1 = 0.0f;
-	midangle = 0.0f;
-	tpress = false;
-	dpress = false;
-	size = 1.0f;
-	sizedir = 0;
-	lpress = false;
-	a1 = 0.0f;
-	a1dir = 0;
-	openangle = 0.0f;
-	opendir = 0;
-	flagangle = 0.0f;
-	ppress = false;
-	flagdir = 0;
-	zview = 4.0f;
-	xview = 0.0f;
-	yspin = 0;
-	glm::vec3 campos(0, 2, 5);
-	camyaw = 0;
 	camorbit = 0;
-	rpress = false;
-
+	camspin = false;
+	gong = 0.0f;
+	gongjeon = false;
+	a2 = 0.0f;
 }
 
 // 그리기 매 프레임
 void drawScene()
 {
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.2f, 0.3f, 0.8f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// 공책 비우고 적기
+	// 공책 비우고 적기  같은 cube.obj 를 색만 다르게 두 번
 	n = 0;
+	int gr = n;
+	addobj(cubev, cubef, 0.5f, 0.5f, 0.5f);       // 바닥 회색
 	int cube = n;
-	addobj(cubev, cubef, 0.3f, 0.6f, 1.0f);
-	int cubecount = n - cube;
+	addobj(cubev, cubef, 0.3f, 0.6f, 1.0f);       // 육면체 파랑
+	int cubecount = n - cube;                      // 36
 	int cube2 = n;
-	addobj(cubev, cubef, 0.5f, 0.6f, 0.6f);
+	addobj(cubev, cubef, 0.4f, 0.9f, 1.0f);       // 육면체 파랑
 	int cube3 = n;
-	addobj(cubev, cubef, 0.6f, 0.3f, 0.3f);
-	int cube4 = n;
-	addobj(cubev, cubef, 0.3f, 0.3f, 0.3f);
-	int cube5 = n;
-	addobj(cubev, cubef, 0.3f, 0.3f, 0.3f);
-	int cube6 = n;
-	addobj(cubev, cubef, 0.0f, 0.8f, 0.8f);
-	int cube7 = n;
-	addobj(cubev, cubef, 0.0f, 0.8f, 0.8f);
-	int cube8 = n;
-	addobj(cubev, cubef, 1.0f, 0.4f, 0.4f);
-	int cube9 = n;
-	addobj(cubev, cubef, 1.0f, 0.4f, 0.4f);
+	addobj(cubev, cubef, 0.8f, 0.2f, 0.4f);       // 육면체 파랑
 
-	int ground = n;
-	addfloor(0.5f, 0.5f, 0.5f);
-	if (tpress == true)
-	{
-		midangle += 1.0f;
-	}
-	if (dpress == true)
-	{
-		if (size > 2.0f)
-		{
-			sizedir = -1;
 
-		}
-		if (size < 1.0f)
-		{
-			sizedir = 1;
-
-		}
-		size += sizedir * 0.01f;
-	}
-	if (lpress == true)
-	{
-		if (a1 >= 0.0f)
-		{
-			a1dir = 1;
-			if (a1 == 180.0f)
-			{
-				lpress = false;
-				a1 = 0.0f;
-			}
-		}
-		a1 += 1.0f * a1dir;
-	}
-	if (gpress == true)
-	{
-		if (openangle >= 45.0f)
-		{
-			opendir = -1;
-		}
-		else if (openangle <= -45.0f)
-		{
-			opendir = 1;
-		}
-		if (opendir == 1)
-		{
-			openangle += 1.0f;
-		}
-		else if (opendir == -1)
-		{
-			openangle -= 1.0f;
-		}
-	}
-	
-	if (ppress == true)
-	{
-		if (flagangle >= 45.0f)
-		{
-			flagdir = -1;
-		}
-		else if (flagangle <= -45.0f)
-		{
-			flagdir = 1;
-		}
-		if (flagdir == 1)
-		{
-			flagangle += 1.0f;
-		}
-		else if (flagdir == -1)
-		{
-			flagangle -= 1.0f;
-		}
-	}
-	if (yspin == 1)
-	{
-		camyaw += 0.1f;
-	}
-	else if (yspin == -1)
-	{
-		camyaw -= 0.1f;
-	}
-	if (rpress == true)
+	if (camspin == true)
 	{
 		camorbit += 1.0f;
-
 	}
+	if (gongjeon == true)
+	{
+		gong += 1.0f;
+	}
+	a2 += 1.0f;
 	upload();
 	setcolor(false);
 
-	// 카메라 원근 투영 z 3 에서 원점 보기
+	// 카메라 원근 투영  y 2 z 5 에서 원점 보기  R 키로 y축 공전
 	setproj(glm::perspective(glm::radians(45.0f), (float)width / height, 0.1f, 100.0f));
+	setview(lookcam(orbitpos(glm::vec3(0, 2, 5), camorbit), glm::vec3(0)));
 
-	glm::vec3 eye = orbitpos(campos, camorbit);        // r 공전으로 위치 돌리기
-	setview(yawcam(eye, camyaw + camorbit, 0.3f));     // y 자전 + 공전한 만큼 방향도 돌려서 계속 중심 보기
-	glm::mat4 tank = glm::translate(glm::mat4(1.0f), glm::vec3(tankx1, 0.0f, tankz1));
-	//아래몸체
-	drawobj(glm::translate(tank, glm::vec3(-0.2f , 0.1f * size, 0.0f)), glm::vec3(0.3f, 0.2f * size, 1.0f), cube, cubecount);
-	drawobj(glm::translate(tank, glm::vec3(0.2f , 0.1f * size, 0.0f)), glm::vec3(0.3f, 0.2f * size, 1.0f), cube, cubecount);
+	// 바닥 가로 4 두께 0.05 세로 4  윗면이 y 0 에 오게 두께 절반만큼 아래로
+	float T = 0.05f;
+	glm::mat4 floor = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -T / 2, 0.0f));
+	drawobj(floor, glm::vec3(4.0f, T, 4.0f), gr, cubecount);
 
-	//중앙
-	glm::mat4 mid = spinat(tank, glm::vec3(0.0f, 0.25f * size, 0.0f), 0.0f, midangle);
-	drawobj(mid, glm::vec3(0.4f, 0.1f, 0.5f), cube3, cubecount);
-	//상부
-	glm::mat4 up1 = orbitkeep(mid, a1, glm::vec3(-0.2f, 0.1f, 0.0f));
-	drawobj(up1, glm::vec3(0.3f, 0.1f, 0.5f), cube4, cubecount);
-	glm::mat4 up2 = orbitkeep(mid, a1, glm::vec3(0.2f, 0.1f, 0.0f));
-	drawobj(up2, glm::vec3(0.3f, 0.1f, 0.5f), cube5, cubecount);
-	//깃대
-	glm::mat4 f1 = hinge(up1, glm::vec3(0, 0.05f, 0), AX, flagangle);
-	drawobj(glm::translate(f1, glm::vec3(0, 0.3f, 0)), glm::vec3(0.1f, 0.5f, 0.1f), cube6, cubecount);
-	glm::mat4 f2 = hinge(up2, glm::vec3(0, 0.05f, 0), AX, -flagangle);
-	drawobj(glm::translate(f2, glm::vec3(0, 0.3f, 0)), glm::vec3(0.1f, 0.5f, 0.1f), cube7, cubecount);
+	// 정육면체 한 변 1  바닥 위에 올리려면 절반만큼 위로
 
-	//포신
-	glm::mat4 b1 = hinge(up1, glm::vec3(0, 0, 0.25f), AX, -openangle);
-	drawobj(glm::translate(b1, glm::vec3(0, 0, 0.5f)), glm::vec3(0.05f, 0.05f, 0.5f), cube8, cubecount);
-
-	glm::mat4 b2 = hinge(up2, glm::vec3(0, 0, 0.25f), AX, openangle);
-	drawobj(glm::translate(b2, glm::vec3(0, 0, 0.5f)), glm::vec3(0.05f, 0.05f, 0.5f), cube9, cubecount);
-	drawwith(glm::scale(glm::mat4(1.0f), glm::vec3(4.0f, 1.0f, 4.0f)), GL_TRIANGLES, ground, 6);
-
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	setcolor(false);
+	glm::mat4 m = spinat(glm::mat4(1.0f), glm::vec3(0, 0.1f, 0), 0.0f, 0);
+	drawobj(m, glm::vec3(0.5f, 0.2f, 0.5f), cube, cubecount);
+	glm::mat4 mid = spinat(m, glm::vec3(0, 0.25f, 0), 0.0f, gong);
+	drawobj(glm::translate(mid, glm::vec3(0, 0.1f, 0)), glm::vec3(0.2f, 2.0f, 0.2f), cube2, cubecount);
+	glm::mat4 up = hinge(mid, glm::vec3(0, 1.1f, 0), AZ, a2);
+	drawobj(glm::translate(up, glm::vec3(0, 1.1f, 0)), glm::vec3(2.0f, 0.2f, 0.3f), cube3, cubecount);
 
 	// 2D 문제면 setproj setview 대신 set2d 그다음 drawwith
 }
@@ -690,53 +552,13 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 	case GLFW_KEY_S:
 		resetall();
 		break;
-	case GLFW_KEY_T:
-		tpress = !tpress;
-		break;
-	case GLFW_KEY_D:
-		dpress = !dpress;
-		sizedir = 1;
-		break;
-	case GLFW_KEY_L:
-		lpress = true;
-		break;
-	case GLFW_KEY_G:
-		gpress = !gpress;
-		opendir = 1;
-		break;
-	case GLFW_KEY_P:
-		ppress = !ppress;
-		flagdir = 1;
-		break;
-	case GLFW_KEY_LEFT:
-		tankx1 -= 0.05f;
-		break;
-	case GLFW_KEY_RIGHT: tankx1 += 0.05f; break;
-	case GLFW_KEY_UP:    tankz1 += 0.05f; break;
-	case GLFW_KEY_DOWN:  tankz1 -= 0.05f; break;
-	case GLFW_KEY_Z: 
-		if (mods & GLFW_MOD_SHIFT)
-			campos.z -= 0.1f;
-		else
-			campos.z += 0.1f;
-		break;
-	case GLFW_KEY_X:
-		if (mods & GLFW_MOD_SHIFT)
-			campos.x += 0.1f;
-		else
-			campos.x -= 0.1f;
-		break;
-	case GLFW_KEY_Y:
-		if (mods & GLFW_MOD_SHIFT)
-			yspin = 1;
-		else
-			yspin = -1;
-		break;
 	case GLFW_KEY_R:
-		rpress = !rpress;
+		camspin = !camspin;
+		break;
+	case GLFW_KEY_1:
+		gongjeon = !gongjeon;
 		break;
 	}
-
 }
 
 // 마우스 버튼
@@ -767,3 +589,8 @@ void CursorPosCallback(GLFWwindow* window, double x, double y)
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
 }
+
+
+// *********************************************************************
+// 코테틀 끝  여기까지 복사
+// *********************************************************************
